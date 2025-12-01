@@ -5,9 +5,15 @@
         <div class="card">
             <div class="card-body">
                 <h4 class="card-title">{{ $element->l1->name }}</h4>
-                <p class="card-text">{{ $element->l2->name }}</p>
-                <p class="card-text">{{ $element->l3->name }}</p>
-                <p class="card-text" id="level4-text">{{ $element->l4->name }}</p>
+                @if($element->l2)
+                    <p class="card-text">{{ $element->l2->name }}</p>
+                @endif
+                @if($element->l3)
+                    <p class="card-text">{{ $element->l3->name }}</p>
+                @endif
+                @if($element->l4)
+                    <p class="card-text" id="level4-text">{{ $element->l4->name }}</p>
+                @endif
             </div>
         </div>
         <hr>

@@ -14,6 +14,7 @@
                         <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
                             <thead>
                                 <tr>
+                                    <th width="50px">No.</th>
                                     <th>Name</th>
                                     <th width="150px">Score</th>
                                     <th width="150px">Aksi</th>
@@ -21,14 +22,16 @@
                             </thead>
                             <tfoot>
                                 <tr>
+                                    <th width="50px">No.</th>
                                     <th>Name</th>
                                     <th width="150px">Score</th>
                                     <th width="150px">Aksi</th>
                                 </tr>
                             </tfoot>
                             <tbody>
-                                @foreach ($d as $i)
+                                @foreach ($d as $index => $i)
                                     <tr>
+                                        <td>{{ $index + 1 }}</td>
                                         <td>{!! $i->dec !!}</td>
                                         <td width="150px">
                                             <a href="{{ url('indikator/input-score') . '/' . $i->id }}"
