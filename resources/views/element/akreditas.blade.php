@@ -13,9 +13,24 @@
                         @method('PUT')
                         @csrf
                         <h4 class="card-title">{{ $element->l1->name }}</h4>
-                        <p class="card-text">{{ $element->l2->name }}</p>
-                        <p class="card-text">{{ $element->l3->name }}</p>
-                        <p class="card-text">{{ $element->l4->name }}</p>
+                        
+                        {{-- PERBAIKAN DIMULAI DI SINI --}}
+                        {{-- Cek apakah relasi l2 ada sebelum mengakses 'name' --}}
+                        @if (isset($element->l2))
+                            <p class="card-text">{{ $element->l2->name }}</p>
+                        @endif
+
+                        {{-- Cek apakah relasi l3 ada sebelum mengakses 'name' --}}
+                        @if (isset($element->l3))
+                            <p class="card-text">{{ $element->l3->name }}</p>
+                        @endif
+                        
+                        {{-- Cek apakah relasi l4 ada sebelum mengakses 'name' --}}
+                        @if (isset($element->l4))
+                            <p class="card-text">{{ $element->l4->name }}</p>
+                        @endif
+                        {{-- PERBAIKAN SELESAI --}}
+
                         <p class="card-text">{!! $element->indikator->dec !!}</p>
                         <div class="form-group">
                             <label>Score Tercapai</label>

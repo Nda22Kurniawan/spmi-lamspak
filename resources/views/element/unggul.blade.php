@@ -12,9 +12,22 @@
                         @method('PUT')
                         @csrf
                         <h4 class="card-title">{{ $element->l1->name }}</h4>
-                        <p class="card-text">{{ $element->l2->name }}</p>
-                        <p class="card-text">{{ $element->l3->name }}</p>
-                        <p class="card-text">{{ $element->l4->name }}</p>
+                        
+                        {{-- Perbaikan: Cek keberadaan l2 --}}
+                        @if (isset($element->l2))
+                            <p class="card-text">{{ $element->l2->name }}</p>
+                        @endif
+                        
+                        {{-- Perbaikan: Cek keberadaan l3 --}}
+                        @if (isset($element->l3))
+                            <p class="card-text">{{ $element->l3->name }}</p>
+                        @endif
+                        
+                        {{-- Perbaikan: Cek keberadaan l4 --}}
+                        @if (isset($element->l4))
+                            <p class="card-text">{{ $element->l4->name }}</p>
+                        @endif
+                        
                         <p class="card-text">{!! $element->indikator->dec !!}</p>
                         <div class="form-group">
                             <label>Score Tercapai</label>
