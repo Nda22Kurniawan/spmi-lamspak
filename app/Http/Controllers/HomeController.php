@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Berkas;
-use App\Element;
-use App\Prodi;
-use App\Target;
+use App\Models\Berkas;
+use App\Models\Element;
+use App\Models\Prodi;
+use App\Models\Target;
+use App\Models\AssessmentScore;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class HomeController extends Controller
 {
@@ -80,12 +82,10 @@ class HomeController extends Controller
 
         if (isset($_POST['l3_id'])) {
             $b = Berkas::where('prodi_id', $prodi)->whereIn('l1_id', $l1_id)->whereIn('l2_id', $l2_id)->whereIn('l3_id', $l3_id)->get();
-
         }
 
         if (isset($_POST['l4_id'])) {
             $b = Berkas::where('prodi_id', $prodi)->whereIn('l1_id', $l1_id)->whereIn('l2_id', $l2_id)->whereIn('l3_id', $l3_id)->whereIn('l4_id', $l4_id)->get();
-
         }
 
         return view('home.multiSearch.hasil', [
@@ -108,53 +108,90 @@ class HomeController extends Controller
         ]);
     }
 
+    // public function radarDiagram(Prodi $prodi)
+    // {
+    //     $element = Element::where('prodi_id', $prodi->id);
+
+    //     $target = [
+    //         "l1" => Target::where("prodi_id", '=', $prodi->id)->where("l1_id", 1)->first(),
+    //         "l2" => Target::where("prodi_id", '=', $prodi->id)->where("l1_id", 2)->first(),
+    //         "l3" => Target::where("prodi_id", '=', $prodi->id)->where("l1_id", 3)->first(),
+    //         "l4" => Target::where("prodi_id", '=', $prodi->id)->where("l1_id", 4)->first(),
+    //         "l5" => Target::where("prodi_id", '=', $prodi->id)->where("l1_id", 5)->first(),
+    //         "l6" => Target::where("prodi_id", '=', $prodi->id)->where("l1_id", 6)->first(),
+    //         "l7" => Target::where("prodi_id", '=', $prodi->id)->where("l1_id", 7)->first(),
+    //         "l8" => Target::where("prodi_id", '=', $prodi->id)->where("l1_id", 8)->first(),
+    //         "l9" => Target::where("prodi_id", '=', $prodi->id)->where("l1_id", 9)->first(),
+    //         "l10" => Target::where("prodi_id", '=', $prodi->id)->where("l1_id", 10)->first(),
+    //         "l11" => Target::where("prodi_id", '=', $prodi->id)->where("l1_id", 11)->first(),
+    //         "l12" => Target::where("prodi_id", '=', $prodi->id)->where("l1_id", 12)->first(),
+    //         "l13" => Target::where("prodi_id", '=', $prodi->id)->where("l1_id", 13)->first(),
+    //     ];
+
+    //     $pencapaian = [
+    //         "l1" => Element::where('prodi_id', $prodi->id)->where('l1_id', 1)->sum('score_hitung'),
+    //         "l2" => Element::where('prodi_id', $prodi->id)->where('l1_id', 2)->sum('score_hitung'),
+    //         "l3" => Element::where('prodi_id', $prodi->id)->where('l1_id', 3)->sum('score_hitung'),
+    //         "l4" => Element::where('prodi_id', $prodi->id)->where('l1_id', 4)->sum('score_hitung'),
+    //         "l5" => Element::where('prodi_id', $prodi->id)->where('l1_id', 5)->sum('score_hitung'),
+    //         "l6" => Element::where('prodi_id', $prodi->id)->where('l1_id', 6)->sum('score_hitung'),
+    //         "l7" => Element::where('prodi_id', $prodi->id)->where('l1_id', 7)->sum('score_hitung'),
+    //         "l8" => Element::where('prodi_id', $prodi->id)->where('l1_id', 8)->sum('score_hitung'),
+    //         "l9" => Element::where('prodi_id', $prodi->id)->where('l1_id', 9)->sum('score_hitung'),
+    //         "l10" => Element::where('prodi_id', $prodi->id)->where('l1_id', 10)->sum('score_hitung'),
+    //         "l11" => Element::where('prodi_id', $prodi->id)->where('l1_id', 11)->sum('score_hitung'),
+    //         "l12" => Element::where('prodi_id', $prodi->id)->where('l1_id', 12)->sum('score_hitung'),
+    //         "l13" => Element::where('prodi_id', $prodi->id)->where('l1_id', 13)->sum('score_hitung'),
+
+    //     ];
+    //     return view('home.diagram.radar', [
+    //         'p' => $prodi,
+    //         'e' => $element->get(),
+    //         'count_element' => $element->count(),
+    //         'count_berkas' => $element->sum("count_berkas"),
+    //         'score_hitung' => number_format($element->sum("score_hitung") / 4, 2),
+    //         'terakreditas' => $element->where('status_akreditasi', "Y")->get(),
+    //         'unggul' => $element->where('status_unggul', "Y")->get(),
+    //         'baik' => $element->where('status_baik', "Y")->get(),
+    //         'target' => $target,
+    //         'pencapaian' => $pencapaian,
+    //     ]);
+    // }
+
     public function radarDiagram(Prodi $prodi)
     {
-        $element = Element::where('prodi_id', $prodi->id);
+        // 1. Cek Prodi pakai LAM apa
+        if (!$prodi->accreditationModel) {
+            return redirect()->back()->with('error', 'Prodi ini belum disetting menggunakan Instrumen Akreditasi.');
+        }
 
-        $target = [
-            "l1" => Target::where("prodi_id", '=', $prodi->id)->where("l1_id", 1)->first(),
-            "l2" => Target::where("prodi_id", '=', $prodi->id)->where("l1_id", 2)->first(),
-            "l3" => Target::where("prodi_id", '=', $prodi->id)->where("l1_id", 3)->first(),
-            "l4" => Target::where("prodi_id", '=', $prodi->id)->where("l1_id", 4)->first(),
-            "l5" => Target::where("prodi_id", '=', $prodi->id)->where("l1_id", 5)->first(),
-            "l6" => Target::where("prodi_id", '=', $prodi->id)->where("l1_id", 6)->first(),
-            "l7" => Target::where("prodi_id", '=', $prodi->id)->where("l1_id", 7)->first(),
-            "l8" => Target::where("prodi_id", '=', $prodi->id)->where("l1_id", 8)->first(),
-            "l9" => Target::where("prodi_id", '=', $prodi->id)->where("l1_id", 9)->first(),
-            "l10" => Target::where("prodi_id", '=', $prodi->id)->where("l1_id", 10)->first(),
-            "l11" => Target::where("prodi_id", '=', $prodi->id)->where("l1_id", 11)->first(),
-            "l12" => Target::where("prodi_id", '=', $prodi->id)->where("l1_id", 12)->first(),
-            "l13" => Target::where("prodi_id", '=', $prodi->id)->where("l1_id", 13)->first(),
-        ];
+        $model = $prodi->accreditationModel;
 
-        $pencapaian = [
-            "l1" => Element::where('prodi_id', $prodi->id)->where('l1_id', 1)->sum('score_hitung'),
-            "l2" => Element::where('prodi_id', $prodi->id)->where('l1_id', 2)->sum('score_hitung'),
-            "l3" => Element::where('prodi_id', $prodi->id)->where('l1_id', 3)->sum('score_hitung'),
-            "l4" => Element::where('prodi_id', $prodi->id)->where('l1_id', 4)->sum('score_hitung'),
-            "l5" => Element::where('prodi_id', $prodi->id)->where('l1_id', 5)->sum('score_hitung'),
-            "l6" => Element::where('prodi_id', $prodi->id)->where('l1_id', 6)->sum('score_hitung'),
-            "l7" => Element::where('prodi_id', $prodi->id)->where('l1_id', 7)->sum('score_hitung'),
-            "l8" => Element::where('prodi_id', $prodi->id)->where('l1_id', 8)->sum('score_hitung'),
-            "l9" => Element::where('prodi_id', $prodi->id)->where('l1_id', 9)->sum('score_hitung'),
-            "l10" => Element::where('prodi_id', $prodi->id)->where('l1_id', 10)->sum('score_hitung'),
-            "l11" => Element::where('prodi_id', $prodi->id)->where('l1_id', 11)->sum('score_hitung'),
-            "l12" => Element::where('prodi_id', $prodi->id)->where('l1_id', 12)->sum('score_hitung'),
-            "l13" => Element::where('prodi_id', $prodi->id)->where('l1_id', 13)->sum('score_hitung'),
+        // 2. Ambil Klaster dari LAM tersebut
+        $clusters = $model->clusters; // Relasi: AccreditationModel hasMany AssessmentCluster
 
-        ];
-        return view('home.diagram.radar', [
-            'p' => $prodi,
-            'e' => $element->get(),
-            'count_element' => $element->count(),
-            'count_berkas' => $element->sum("count_berkas"),
-            'score_hitung' => number_format($element->sum("score_hitung") / 4, 2),
-            'terakreditas' => $element->where('status_akreditasi', "Y")->get(),
-            'unggul' => $element->where('status_unggul', "Y")->get(),
-            'baik' => $element->where('status_baik', "Y")->get(),
-            'target' => $target,
-            'pencapaian' => $pencapaian,
-        ]);
+        $labels = [];
+        $dataScores = [];
+        $maxScores = []; // Biasanya 4.0
+
+        // 3. Hitung Skor per Klaster
+        foreach ($clusters as $cluster) {
+            // Simpan Nama Label (Misal: "C. Pendidikan")
+            $labels[] = $cluster->code . ' ' . Str::limit($cluster->name, 15);
+            $maxScores[] = $model->max_score; // Garis batas luar radar
+
+            // Ambil semua indikator di klaster ini
+            $indicatorIds = $cluster->indicators->pluck('id');
+
+            // Ambil nilai yang sudah dinilai untuk prodi ini
+            $scores = AssessmentScore::where('prodi_id', $prodi->id)
+                ->whereIn('indicator_id', $indicatorIds)
+                ->avg('final_score'); // Rata-rata sederhana (bisa diganti bobot)
+
+            $dataScores[] = round($scores ?? 0, 2);
+        }
+
+        // 4. Kirim ke View
+        return view('home.diagram', compact('prodi', 'model', 'labels', 'dataScores', 'maxScores'));
     }
 }

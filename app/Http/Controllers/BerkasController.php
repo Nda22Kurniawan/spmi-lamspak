@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Berkas;
-use App\Element;
-use App\Indikator;
-use App\Prodi;
-use App\Score;
+use App\Models\Berkas;
+use App\Models\Element;
+use App\Models\Indikator;
+use App\Models\Prodi;
+use App\Models\Score;
 use Illuminate\Http\Request;
 
 class BerkasController extends Controller

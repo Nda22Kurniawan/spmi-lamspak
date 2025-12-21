@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Score;
+use App\Models\Score;
 
 class ScoreController extends Controller
 {

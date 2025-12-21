@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Jenjang;
-use App\L1;
+use App\Models\Jenjang;
+use App\Models\L1;
 use Illuminate\Http\Request;
 
 class KriteriaController extends Controller

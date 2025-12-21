@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Element;
-use App\Jenjang;
-use App\L1;
-use App\Prodi;
-use App\Target;
+use App\Models\Element;
+use App\Models\Jenjang;
+use App\Models\L1;
+use App\Models\Prodi;
+use App\Models\Target;
 use Illuminate\Http\Request;
 
 class ProdiController extends Controller

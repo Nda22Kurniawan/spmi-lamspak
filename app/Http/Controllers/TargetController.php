@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Prodi;
-use App\Target;
+use App\Models\Prodi;
+use App\Models\Target;
 use Illuminate\Http\Request;
 
 class TargetController extends Controller

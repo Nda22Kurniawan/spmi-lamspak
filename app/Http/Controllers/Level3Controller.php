@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Jenjang;
-use App\L3;
+use App\Models\Jenjang;
+use App\Models\L3;
 use Illuminate\Http\Request;
 
 class Level3Controller extends Controller

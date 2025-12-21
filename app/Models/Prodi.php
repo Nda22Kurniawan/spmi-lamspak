@@ -1,6 +1,6 @@
 <?php
 
-namespace App;
+namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
@@ -22,5 +22,10 @@ class Prodi extends Model
     public function scopeNotIn($query)
     {
         return $query->whereNotIn('id', [0])->orderBy('name', 'ASC')->get();
+    }
+
+    public function accreditationModel()
+    {
+        return $this->belongsTo(AccreditationModel::class, 'accreditation_model_id');
     }
 }
