@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Jenjang;
-use App\L4;
+use App\Models\Jenjang;
+use App\Models\L4;
 use Illuminate\Http\Request;
 
 class Level4Controller extends Controller

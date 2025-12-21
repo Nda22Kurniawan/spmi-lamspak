@@ -1,12 +1,12 @@
 <?php
 
-namespace App;
+namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class L3 extends Model
+class L2 extends Model
 {
-    protected $fillable = ['name', 'l2_id', 'jenjang_id'];
+    protected $fillable = ['name', 'l1_id', 'jenjang_id'];
 
     public function jenjang()
     {

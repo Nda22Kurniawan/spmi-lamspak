@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Jenjang;
-use App\Prodi;
+use App\Models\Jenjang;
+use App\Models\Prodi;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;

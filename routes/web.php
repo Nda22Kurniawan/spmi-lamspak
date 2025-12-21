@@ -16,16 +16,21 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\TargetController;
 use App\Http\Controllers\MahasiswaController;
 use App\Http\Controllers\DropdownController;
+use App\Http\Controllers\AssessmentController;
+use App\Http\Controllers\ClusterController;
+use App\Http\Controllers\DiagramController;
 use Illuminate\Support\Facades\Route;
-use App\Jenjang;
-use App\Prodi;
+use App\Models\Jenjang;
+use App\Models\Prodi;
 
-// Authentication Routes
+// =============================================================
+// PUBLIC ROUTES (Login & Home)
+// =============================================================
+
 Route::get('login', [AuthController::class, 'index'])->name('login');
 Route::post('proses', [AuthController::class, 'proses']);
 Route::post('logout', [AuthController::class, 'logout'])->name('logout');
 
-// Home Routes
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('tabel/{prodi:kode}', [HomeController::class, 'tabel']);
 Route::get('tabel/berkas/{element}', [HomeController::class, 'berkas']);
@@ -34,17 +39,87 @@ Route::get('single-search', [HomeController::class, 'singleSearch'])->name('sing
 Route::post('single-search/hasil', [HomeController::class, 'hasilsingleSearch']);
 Route::get('multiple-search', [HomeController::class, 'multiSearch'])->name('multipleSearch');
 Route::post('multi-search/hasil', [HomeController::class, 'hasilmultiSearch']);
-Route::get('diagram', [HomeController::class, 'diagram'])->name('diagram');
+Route::get('diagram', [HomeController::class, 'diagram'])->name('diagram'); // Diagram Lama
 Route::get('diagram/login', fn() => redirect()->route('login'));
-Route::get('diagram/{prodi:kode}', [HomeController::class, 'radarDiagram']);
+// Route::get('diagram/{prodi:kode}', [HomeController::class, 'radarDiagram']); // Diagram Lama
 
-// Middleware Protected Routes
+
+// =============================================================
+// PROTECTED ROUTES (Butuh Login & Role)
+// =============================================================
+
 Route::middleware(['auth', 'cekRole:Admin,Ketua LPM,Ketua Program Studi,Dosen,UPPS,Mahasiswa,Alumni'])->group(function () {
-    $jenjangs = Jenjang::get();
-    $prodis = Prodi::get();
+    
+    // Wrap try-catch agar tidak error saat migrate fresh
+    try {
+        $jenjangs = Jenjang::get();
+        $prodis = Prodi::get();
+    } catch (\Exception $e) {
+        $jenjangs = [];
+        $prodis = [];
+    }
 
     // Dashboard
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // ===========================================================
+    // BAGIAN 1: SPMI TERINTEGRASI (FITUR BARU)
+    // ===========================================================
+
+    // --- A. PENGATURAN LAM (Administrator) ---
+    // 1. Master Data LAM (Tambah/Edit Jenis LAM)
+    Route::get('/pengaturan/master-lam/tambah', [PengaturanController::class, 'createLam'])->name('pengaturan.lam.create');
+    Route::post('/pengaturan/master-lam/simpan', [PengaturanController::class, 'storeLam'])->name('pengaturan.lam.store');
+    Route::get('/pengaturan/master-lam/edit/{id}', [PengaturanController::class, 'editLam'])->name('pengaturan.lam.edit');
+    Route::put('/pengaturan/master-lam/update/{id}', [PengaturanController::class, 'updateLam'])->name('pengaturan.lam.update');
+    
+    // 2. Mapping Prodi ke LAM
+    Route::get('/pengaturan/mapping-lam', [PengaturanController::class, 'mappingLam'])->name('pengaturan.lam');
+    Route::put('/pengaturan/mapping-lam/update', [PengaturanController::class, 'updateMappingLam'])->name('pengaturan.lam.mapping.update');
+
+
+    // --- B. MASTER DATA (Administrator) ---
+    // 1. Master Klaster / Elemen Penilaian
+    Route::get('/master/klaster', [ClusterController::class, 'index'])->name('cluster.index');
+    Route::get('/master/klaster/tambah', [ClusterController::class, 'create'])->name('cluster.create');
+    Route::post('/master/klaster/simpan', [ClusterController::class, 'store'])->name('cluster.store');
+    Route::get('/master/klaster/edit/{id}', [ClusterController::class, 'edit'])->name('cluster.edit');
+    Route::put('/master/klaster/update/{id}', [ClusterController::class, 'update'])->name('cluster.update');
+    Route::delete('/master/klaster/hapus/{id}', [ClusterController::class, 'destroy'])->name('cluster.destroy');
+
+    // 2. Master Indikator / Butir Penilaian
+    Route::get('/master/indikator', [IndikatorController::class, 'index'])->name('indikator.index');
+    Route::delete('/master/indikator/hapus/{id}', [IndikatorController::class, 'destroy'])->name('indikator.destroy');
+    
+    // Wizard Tambah Indikator (Pilih LAM -> Pilih Klaster -> Input)
+    Route::get('/master/indikator/tambah', [IndikatorController::class, 'createByLam'])->name('indikator.wizard');
+    Route::post('/master/indikator/simpan', [IndikatorController::class, 'storeWizard'])->name('indikator.storeWizard');
+
+
+    // --- C. INPUT DATA & ASESMEN (User/Prodi) ---
+    // 1. Data Statistik (DKPS) - Input Angka Mentah
+    Route::get('/spmi/data-statistik', [AssessmentController::class, 'indexRawData'])->name('raw_data.index');
+    Route::post('/spmi/data-statistik/store', [AssessmentController::class, 'storeRawData'])->name('raw_data.store');
+
+    // 2. Asesmen Mutu (Penilaian)
+    Route::get('/asesmen/pilih-prodi', [AssessmentController::class, 'pilihProdi'])->name('assessment.pilih_prodi');
+    Route::get('/asesmen/form/{prodi_id}', [AssessmentController::class, 'formAsesmen'])->name('assessment.form');
+    Route::post('/spmi/asesmen/hitung', [AssessmentController::class, 'assess'])->name('assessment.score');
+
+
+    // --- D. LAPORAN & GRAFIK ---
+    // Grafik Spider Chart (Radar)
+    Route::get('/diagram/pilih-prodi', [DiagramController::class, 'index'])->name('diagram.index');
+    Route::get('/diagram/lihat/{prodi_id}', [DiagramController::class, 'show'])->name('diagram.show');
+
+
+    // --- E. API / AJAX SUPPORT (SPMI) ---
+    Route::get('/api/get-clusters-by-lam/{lam_id}', [IndikatorController::class, 'getClustersByLam']);
+    
+
+    // ===========================================================
+    // BAGIAN 2: FITUR LAMA (LEGACY / SISTEM AWAL)
+    // ===========================================================
 
     // Jenjang
     foreach ($jenjangs as $jenjang) {
@@ -62,34 +137,26 @@ Route::middleware(['auth', 'cekRole:Admin,Ketua LPM,Ketua Program Studi,Dosen,UP
     Route::delete('kriteria/hapus/{l1}', [KriteriaController::class, 'hapus']);
     Route::put('kriteria/put/{l1}', [KriteriaController::class, 'put']);
 
-    // Level 2
-    foreach ($jenjangs as $jenjang) {
-        Route::get("sub-kriteria/l2/{$jenjang->kode}", [Level2Controller::class, 'sort']);
-    }
+    // Level 2, 3, 4 (Sub Kriteria)
     Route::get('sub-kriteria/l2', [Level2Controller::class, 'index'])->name('level2');
     Route::post('sub-kriteria/l2/post', [Level2Controller::class, 'store']);
     Route::delete('sub-kriteria/l2/hapus/{l2}', [Level2Controller::class, 'hapus']);
     Route::put('sub-kriteria/l2/put/{l2}', [Level2Controller::class, 'put']);
+    foreach ($jenjangs as $jenjang) { Route::get("sub-kriteria/l2/{$jenjang->kode}", [Level2Controller::class, 'sort']); }
 
-    // Level 3
-    foreach ($jenjangs as $jenjang) {
-        Route::get("sub-kriteria/l3/{$jenjang->kode}", [Level3Controller::class, 'sort']);
-    }
     Route::get('sub-kriteria/l3', [Level3Controller::class, 'index'])->name('level3');
     Route::post('sub-kriteria/l3/post', [Level3Controller::class, 'store']);
     Route::delete('sub-kriteria/l3/hapus/{l3}', [Level3Controller::class, 'hapus']);
     Route::put('sub-kriteria/l3/put/{l3}', [Level3Controller::class, 'put']);
+    foreach ($jenjangs as $jenjang) { Route::get("sub-kriteria/l3/{$jenjang->kode}", [Level3Controller::class, 'sort']); }
 
-    // Level 4
-    foreach ($jenjangs as $jenjang) {
-        Route::get("sub-kriteria/l4/{$jenjang->kode}", [Level4Controller::class, 'sort']);
-    }
     Route::get('sub-kriteria/l4', [Level4Controller::class, 'index'])->name('level4');
     Route::post('sub-kriteria/l4/post', [Level4Controller::class, 'store']);
     Route::delete('sub-kriteria/l4/hapus/{l4}', [Level4Controller::class, 'hapus']);
     Route::put('sub-kriteria/l4/put/{l4}', [Level4Controller::class, 'put']);
+    foreach ($jenjangs as $jenjang) { Route::get("sub-kriteria/l4/{$jenjang->kode}", [Level4Controller::class, 'sort']); }
 
-    // Indikator
+    // Indikator Lama
     foreach ($jenjangs as $jenjang) {
         Route::get("indikator/{$jenjang->kode}", [IndikatorController::class, 'index'])->name("indikator-{$jenjang->kode}");
     }
@@ -168,9 +235,13 @@ Route::middleware(['auth', 'cekRole:Admin,Ketua LPM,Ketua Program Studi,Dosen,UP
     Route::get('data/mahasiswa/{prodi:kode}', [MahasiswaController::class, 'index']);
     Route::get('data/mahasiswa/tambah/{prodi:kode}', [MahasiswaController::class, 'tambah']);
     Route::post('data/mahasiswa/store', [MahasiswaController::class, 'store']);
+
 });
 
-// Dropdown Routes
+// =============================================================
+// DROPDOWN AJAX ROUTES
+// =============================================================
+
 Route::post('dropdownlist/getJen', [DropdownController::class, 'getJen'])->name('getJen');
 Route::post('dropdownlist/getPro', [DropdownController::class, 'getPro'])->name('getPro');
 Route::post('dropdownlist/getIndikator', [DropdownController::class, 'getIndikator'])->name('getInd');

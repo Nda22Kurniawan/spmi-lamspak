@@ -2,24 +2,79 @@
 
 namespace App\Http\Controllers;
 
-use App\Indikator;
-use App\Jenjang;
-use App\Score;
+use App\Models\Indikator;
+use App\Models\Jenjang;
+use App\Models\Score;
+use App\Models\Prodi;
+use App\Models\AccreditationModel;
+use App\Models\AssessmentCluster;
+use App\Models\Indicator;
 use Illuminate\Http\Request;
 
 class IndikatorController extends Controller
 {
     public function index(Request $request)
     {
-        $kode = basename($request->path());
-        $jenjang = Jenjang::where('kode', $kode)->first();
-        $indikator = Indikator::where('jenjang_id', $jenjang->id)->orderBy('id', 'ASC')->get();
-        return view('indikator.index', [
-            'd' => $indikator,
-            'j' => $jenjang,
-        ]);
+        $lams = AccreditationModel::all();
 
+        // Ambil lam_id dari request, atau default ke LAM pertama
+        $selectedLamId = $request->get('lam_id', $lams->first()->id ?? null);
+        $search = $request->get('search'); // Ambil kata kunci pencarian
+
+        $indicators = collect(); // Default kosong
+
+        if ($selectedLamId) {
+            $query = Indicator::with('cluster')
+                ->whereHas('cluster', function ($q) use ($selectedLamId) {
+                    $q->where('model_id', $selectedLamId);
+                });
+
+            // Logika Pencarian
+            if ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('code', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%");
+                });
+            }
+
+            // Sorting & Pagination
+            $indicators = $query->join('assessment_clusters', 'indicators.cluster_id', '=', 'assessment_clusters.id')
+                ->orderBy('assessment_clusters.order_index', 'asc') // Urutkan Cluster dulu
+                ->orderBy('indicators.id', 'asc') // Lalu urutkan ID Indikator
+                ->select('indicators.*') // Penting agar ID tidak tertimpa ID cluster
+                ->paginate(10) // Tampilkan 10 data per halaman
+                ->appends(['lam_id' => $selectedLamId, 'search' => $search]); // Agar parameter tidak hilang saat pindah hal
+        }
+
+        return view('indikator.index', compact('lams', 'selectedLamId', 'indicators', 'search'));
     }
+
+    // 2. Hapus Indikator
+    public function destroy($id)
+    {
+        $indicator = Indicator::findOrFail($id);
+
+        // Simpan LAM ID untuk redirect balik ke halaman yang sama
+        $lamId = $indicator->cluster->model_id;
+
+        // Hapus (Score & Rubrik akan terhapus otomatis jika Anda set onCascadeDelete di migrasi)
+        // Jika tidak, Anda perlu manual: $indicator->rubrics()->delete(); $indicator->scores()->delete();
+        $indicator->delete();
+
+        return redirect()->route('indikator.index', ['lam_id' => $lamId])
+            ->with('success', 'Indikator berhasil dihapus.');
+    }
+
+    // public function index(Request $request)
+    // {
+    //     $kode = basename($request->path());
+    //     $jenjang = Jenjang::where('kode', $kode)->first();
+    //     $indikator = Indikator::where('jenjang_id', $jenjang->id)->orderBy('id', 'ASC')->get();
+    //     return view('indikator.index', [
+    //         'd' => $indikator,
+    //         'j' => $jenjang,
+    //     ]);
+    // }
 
     public function store(Request $request)
     {
@@ -178,5 +233,57 @@ class IndikatorController extends Controller
         <strong>Data Berhasil Diedit</strong>
     </div>');
         return redirect()->to('/indikator/cek-score/' . $i->id);
+    }
+
+    public function createByLam()
+    {
+        // Ambil semua Jenis LAM (INFOKOM, SPAK, WISATA, dll)
+        $lams = AccreditationModel::all();
+        return view('indikator.create_wizard', compact('lams'));
+    }
+
+    // API untuk mengambil Klaster berdasarkan LAM ID (Bukan Prodi ID)
+    public function getClustersByLam($lam_id)
+    {
+        $lam = AccreditationModel::with('clusters')->find($lam_id);
+
+        if (!$lam) {
+            return response()->json(['error' => 'Instrumen tidak ditemukan.'], 404);
+        }
+
+        return response()->json([
+            'clusters' => $lam->clusters
+        ]);
+    }
+
+    // API untuk mengambil Klaster berdasarkan Prodi yang dipilih
+    public function getClustersByProdi($prodi_id)
+    {
+        $prodi = Prodi::with('accreditationModel.clusters')->find($prodi_id);
+
+        if (!$prodi || !$prodi->accreditationModel) {
+            return response()->json(['error' => 'Prodi ini belum diseting menggunakan LAM apapun.'], 404);
+        }
+
+        return response()->json([
+            'lam_name' => $prodi->accreditationModel->name,
+            'clusters' => $prodi->accreditationModel->clusters
+        ]);
+    }
+
+    public function storeWizard(Request $request)
+    {
+        // Validasi & Simpan Indikator Baru
+        $request->validate([
+            'cluster_id' => 'required',
+            'code' => 'required',
+            'description' => 'required',
+            'type' => 'required',
+            'weight' => 'required'
+        ]);
+
+        Indicator::create($request->all());
+
+        return redirect()->back()->with('success', 'Indikator berhasil ditambahkan ke LAM terkait.');
     }
 }

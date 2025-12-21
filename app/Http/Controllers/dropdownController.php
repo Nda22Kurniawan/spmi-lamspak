@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Berkas;
-use App\Indikator as Ind;
-use App\Jenjang;
-use App\L1;
-use App\L2;
-use App\L3;
-use App\L4;
-use App\Prodi;
-use App\Score;
+use App\Models\Berkas;
+use App\Models\Indikator as Ind;
+use App\Models\Jenjang;
+use App\Models\L1;
+use App\Models\L2;
+use App\Models\L3;
+use App\Models\L4;
+use App\Models\Prodi;
+use App\Models\Score;
 use Illuminate\Http\Request;
 
 class dropdownController extends Controller

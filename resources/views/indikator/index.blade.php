@@ -1,114 +1,130 @@
 @extends('template.BaseView')
-@section('content')
-    <div class="row">
-        <div class="col">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Indikator {{ $j->name }}</h6>
-                </div>
-                <div class="card-body">
-                    @if (session()->has('pesan'))
-                        {!! session()->get('pesan') !!}
-                    @endif
-                    <div class="table-responsive">
-                        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                            <thead>
-                                <tr>
-                                    <th width="50px">No.</th>
-                                    <th>Name</th>
-                                    <th width="150px">Score</th>
-                                    <th width="150px">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tfoot>
-                                <tr>
-                                    <th width="50px">No.</th>
-                                    <th>Name</th>
-                                    <th width="150px">Score</th>
-                                    <th width="150px">Aksi</th>
-                                </tr>
-                            </tfoot>
-                            <tbody>
-                                @foreach ($d as $index => $i)
-                                    <tr>
-                                        <td>{{ $index + 1 }}</td>
-                                        <td>{!! $i->dec !!}</td>
-                                        <td width="150px">
-                                            <a href="{{ url('indikator/input-score') . '/' . $i->id }}"
-                                                class="btn btn-info btn-sm">
-                                                Input Score
-                                            </a>
-                                            <hr>
-                                            <a href="{{ url('indikator/cek-score') . '/' . $i->id }}"
-                                                class="btn btn-primary btn-sm">Cek
-                                                Score</a>
-                                        </td>
-                                        <td width="150px">
-                                            <a href="{{ url('indikator/edit/' . $i->id) }}"
-                                                class="btn btn-warning btn-sm">Edit</a>
-                                            <hr>
-                                            <a href="{{ url('indikator/konfirmasi/' . $i->id) }}"
-                                                class="btn btn-danger btn-sm">Hapus</a>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-2">
-            <div class="card">
-                <div class="card-body">
-                    <h4 class="card-title">Aksi</h4>
-                    <button type="button" class="btn btn-primary btn-sm float-right" data-toggle="modal"
-                        data-target="#modelTambah">
-                        Tambah Indikator
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Modal -->
-    <div class="modal fade" id="modelTambah" tabindex="-1" role="dialog" aria-labelledby="modelTitleId"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <form action="/indikator/store" method="post">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Tambah Indikator</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
+@section('content')
+<div class="container-fluid">
+    <h1 class="h3 mb-4 text-gray-800">Master Data: Indikator Penilaian</h1>
+
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session('success') }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    @endif
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary">Daftar Indikator / Butir</h6>
+            
+            <a href="{{ route('indikator.wizard') }}" class="btn btn-sm btn-primary shadow-sm">
+                <i class="fas fa-plus fa-sm text-white-50"></i> Tambah Indikator Baru
+            </a>
+        </div>
+        <div class="card-body">
+            
+            <form method="GET" action="{{ route('indikator.index') }}">
+                <div class="row mb-4 align-items-end">
+                    <div class="col-md-5">
+                        <label class="font-weight-bold">Pilih Instrumen (LAM):</label>
+                        <select name="lam_id" class="form-control" onchange="this.form.submit()">
+                            @foreach($lams as $lam)
+                                <option value="{{ $lam->id }}" {{ $selectedLamId == $lam->id ? 'selected' : '' }}>
+                                    {{ $lam->name }}
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
-                    <div class="modal-body">
-                        @csrf
-                        <div class="form-group">
-                            <textarea id="dec" name="dec"></textarea>
-                            <input type="text" name="jenjang" hidden class="form-control" value="{{ $j->id }}"
-                                required>
-                            <input type="text" name="url" hidden class="form-control" value="{{ request()->url() }}"
-                                required>
+
+                    <div class="col-md-5 offset-md-2">
+                        <label class="font-weight-bold">Cari Indikator:</label>
+                        <div class="input-group">
+                            <input type="text" name="search" class="form-control" 
+                                   placeholder="Cari kode atau deskripsi..." 
+                                   value="{{ request('search') }}">
+                            <div class="input-group-append">
+                                <button class="btn btn-primary" type="submit">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                                @if(request('search'))
+                                    <a href="{{ route('indikator.index', ['lam_id' => $selectedLamId]) }}" class="btn btn-secondary" title="Reset">
+                                        <i class="fas fa-times"></i>
+                                    </a>
+                                @endif
+                            </div>
                         </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Save</button>
                     </div>
                 </div>
             </form>
+
+            <hr>
+
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" width="100%" cellspacing="0">
+                    <thead class="thead-light">
+                        <tr>
+                            <th style="width: 20%">Klaster</th>
+                            <th style="width: 10%">Kode</th>
+                            <th>Deskripsi Pertanyaan</th>
+                            <th style="width: 5%">Bobot</th>
+                            <th style="width: 10%">Tipe</th>
+                            <th style="width: 10%">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{-- Cek apakah $indicators kosong (bisa karena search tidak ketemu atau memang belum ada data) --}}
+                        @if($indicators->count() > 0)
+                            @foreach($indicators as $indicator)
+                            <tr>
+                                <td class="small font-weight-bold text-primary align-middle">
+                                    {{ $indicator->cluster->code }} - {{ $indicator->cluster->name }}
+                                </td>
+                                <td class="font-weight-bold align-middle">{{ $indicator->code }}</td>
+                                <td class="align-middle">{{ Str::limit($indicator->description, 120) }}</td>
+                                <td class="text-center align-middle">{{ $indicator->weight }}</td>
+                                <td class="text-center align-middle">
+                                    @if($indicator->type == 'QUALITATIVE')
+                                        <span class="badge badge-info">Rubrik</span>
+                                    @else
+                                        <span class="badge badge-warning">Rumus</span>
+                                    @endif
+                                </td>
+                                <td class="text-center align-middle">
+                                    <form action="{{ route('indikator.destroy', $indicator->id) }}" method="POST" class="d-inline" 
+                                          onsubmit="return confirm('Yakin ingin menghapus Indikator {{ $indicator->code }}? Data nilai yang terkait juga akan hilang!');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Hapus">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            @endforeach
+                        @else
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-5">
+                                    <i class="fas fa-folder-open fa-3x mb-3 text-gray-300"></i><br>
+                                    Data indikator tidak ditemukan.
+                                </td>
+                            </tr>
+                        @endif
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="d-flex justify-content-end mt-3">
+                {{-- Pastikan AppServiceProvider menggunakan Paginator::useBootstrap() --}}
+                @if($indicators instanceof \Illuminate\Pagination\LengthAwarePaginator)
+                    {{ $indicators->links() }} 
+                @endif
+            </div>
+
+            <div class="small text-muted">
+                Menampilkan {{ $indicators->firstItem() ?? 0 }} sampai {{ $indicators->lastItem() ?? 0 }} dari total {{ $indicators->total() ?? 0 }} data.
+            </div>
+
         </div>
     </div>
-
-
-@endsection
-@section('script')
-    <script>
-        $(document).ready(function() {
-            CKEDITOR.replace('dec');
-            CKEDITOR.replace('name');
-        });
-    </script>
+</div>
 @endsection
