@@ -46,6 +46,18 @@
             <span>Master Indikator</span></a>
     </li>
 
+    <li class="nav-item {{ request()->routeIs('variable.index') ? 'active' : '' }}">
+        <a class="nav-link" href="{{ route('variable.index') }}">
+            <i class="fas fa-fw fa-database"></i>
+            <span>Master Variabel (DKPS)</span></a>
+    </li>
+
+    <li class="nav-item {{ request()->routeIs('rubrics.index') ? 'active' : '' }}">
+        <a class="nav-link" href="{{ route('rubrics.index') }}">
+            <i class="fas fa-fw fa-database"></i>
+            <span>Master Rubrik</span></a>
+    </li>
+
     <hr class="sidebar-divider">
 
     <div class="sidebar-heading">
@@ -84,13 +96,13 @@
                 <h6 class="collapse-header">Pilih Instrumen:</h6>
 
                 @if(isset($global_lams) && count($global_lams) > 0)
-                    @foreach($global_lams as $lam)
-                        <a class="collapse-item" href="{{ route('assessment.index', $lam->id) }}">
-                            {{ $lam->name }}
-                        </a>
-                    @endforeach
+                @foreach($global_lams as $lam)
+                <a class="collapse-item" href="{{ route('assessment.index', $lam->id) }}">
+                    {{ $lam->name }}
+                </a>
+                @endforeach
                 @else
-                    <a class="collapse-item" href="#">Belum ada Instrumen</a>
+                <a class="collapse-item" href="#">Belum ada Instrumen</a>
                 @endif
             </div>
         </div>
@@ -102,7 +114,7 @@
         Master Menu (Legacy)
     </div>
 
-    <li class="nav-item">
+    {{-- <li class="nav-item">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#prodi" aria-expanded="true"
             aria-controls="prodi">
             <i class="fa-solid fa-circle-check"></i>
@@ -183,7 +195,7 @@
         <a class="nav-link" href="{{ route('berkas') }}">
             <i class="fa-solid fa-magnifying-glass"></i>
             <span>Multi Search</span></a>
-    </li>
+    </li> --}}
 
     <li class="nav-item">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#pengaturan" aria-expanded="true"
@@ -193,9 +205,9 @@
         </a>
         <div id="pengaturan" class="collapse" aria-labelledby="heading2" data-parent="#accordionSidebar">
             <div class="bg-white py-2 collapse-inner rounded">
-                <a class="collapse-item" href="{{ route('jenjang') }}">Jenjang Pendidikan</a>
+                {{-- <a class="collapse-item" href="{{ route('jenjang') }}">Jenjang Pendidikan</a> --}}
                 <a class="collapse-item" href="{{ route('prodi') }}">Program Studi</a>
-                <a class="collapse-item" href="{{ route('target') }}">Target Pencapaian</a>
+                {{-- <a class="collapse-item" href="{{ route('target') }}">Target Pencapaian</a> --}}
                 <a class="collapse-item" href="{{ route('users') }}">Tambah User</a>
             </div>
         </div>

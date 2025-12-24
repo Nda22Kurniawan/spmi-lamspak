@@ -17,49 +17,59 @@ class DiagramController extends Controller
         return view('diagram.pilih_prodi', compact('prodis'));
     }
 
-    // 2. Tampilkan Grafik Spider Chart
+    // 2. Tampilkan Grafik Spider Chart & Laporan
     public function show($prodi_id)
     {
         $prodi = Prodi::findOrFail($prodi_id);
 
-        // Validasi: Prodi harus sudah punya LAM
         if (!$prodi->accreditation_model_id) {
-            return back()->with('error', 'Prodi ini belum disetting menggunakan Instrumen LAM.');
+            return back()->with('error', 'Prodi belum disetting Instrumen Akreditasi.');
         }
 
         $model = $prodi->accreditationModel;
-        
-        // Ambil Klaster (Kriteria)
-        $clusters = $model->clusters()->orderBy('order_index', 'asc')->get();
 
-        // Siapkan Array untuk Chart.js
+        // Ambil Klaster beserta Indikatornya
+        $clusters = $model->clusters()->with('indicators')->orderBy('order_index', 'asc')->get();
+
+        // Siapkan Array Data
         $labels = [];
-        $scores = [];
-        $maxScores = [];
+        $scores = [];         // Rata-rata Skor (0-4)
+        $clusterCounts = [];  // Jumlah Indikator
+        $weightedScores = []; // [BARU] Total Skor Terbobot per Klaster
 
         foreach ($clusters as $cluster) {
-            // A. Label Grafik (Contoh: "C.1 Visi Misi")
-            // Kita potong nama klaster biar tidak kepanjangan di grafik
-            $shortName = Str::limit($cluster->name, 20); 
-            $labels[] = $cluster->code ? $cluster->code . ' - ' . $shortName : $shortName;
+            // A. Label
+            $shortName = Str::limit($cluster->name, 25);
+            $labels[] = $cluster->code ? $cluster->code . ' ' . $shortName : $shortName;
 
-            // B. Hitung Rata-rata Skor per Klaster
-            // Ambil semua ID indikator dalam klaster ini
+            // B. Data Indikator
             $indicatorIds = $cluster->indicators->pluck('id');
+            $totalIndicators = $indicatorIds->count();
+            $clusterCounts[] = $totalIndicators;
 
-            // Ambil skor yang sudah dinilai untuk prodi ini
-            // Logic: Jumlah Skor / Jumlah Indikator (Average)
-            // Note: Indikator yang belum dinilai dianggap 0 atau tidak dihitung (tergantung kebijakan).
-            // Di sini kita pakai AVG dari database, yg null tidak dihitung.
-            
-            $avgScore = AssessmentScore::where('prodi_id', $prodi->id)
-                        ->whereIn('indicator_id', $indicatorIds)
-                        ->avg('final_score');
+            // C. Hitung Statistik
+            if ($totalIndicators > 0) {
+                // 1. Rata-rata Skor (Untuk Grafik Radar)
+                $sumScore = AssessmentScore::where('prodi_id', $prodi->id)
+                    ->whereIn('indicator_id', $indicatorIds)
+                    ->sum('final_score');
 
-            $scores[] = round($avgScore ?? 0, 2); // Pembulatan 2 desimal
-            $maxScores[] = $model->max_score; // Garis batas luar (Target)
+                $avg = $sumScore / $totalIndicators;
+                $scores[] = round($avg, 2);
+
+                // 2. [BARU] Total Skor Terbobot (Untuk Tabel Laporan)
+                // Mengambil dari kolom 'weighted_score' yang sudah kita buat
+                $sumWeighted = AssessmentScore::where('prodi_id', $prodi->id)
+                    ->whereIn('indicator_id', $indicatorIds)
+                    ->sum('weighted_score');
+
+                $weightedScores[] = round($sumWeighted, 2);
+            } else {
+                $scores[] = 0;
+                $weightedScores[] = 0;
+            }
         }
 
-        return view('diagram.show', compact('prodi', 'model', 'labels', 'scores', 'maxScores'));
+        return view('diagram.show', compact('prodi', 'model', 'labels', 'scores', 'clusterCounts', 'weightedScores'));
     }
 }

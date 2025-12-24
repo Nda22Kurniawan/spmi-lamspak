@@ -4,91 +4,89 @@ namespace App\Services;
 
 use App\Models\Indicator;
 use App\Models\ProdiRawValue;
+use App\Models\RawDataVariable;
+use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 
 class ScoreCalculator
 {
-    /**
-     * Hitung skor berdasarkan Indikator dan Data Prodi
-     */
-    public function calculate(Indicator $indicator, $prodiId)
+    // Tambahkan parameter $year (default null agar tidak error jika lupa isi)
+    public function calculate(Indicator $indicator, $prodiId, $year = null)
     {
-        // 1. Cek apakah ini indikator Kuantitatif yang punya rumus?
-        if ($indicator->type !== 'QUANTITATIVE' || empty($indicator->calculation_code)) {
-            return 0; // Atau throw error
+        if ($indicator->type !== 'QUANTITATIVE') {
+            return 0;
         }
 
-        // 2. Switch Logic berdasarkan Kode Rumus
-        switch ($indicator->calculation_code) {
-            case 'CALC_RASIO_DOSEN':
-                return $this->hitungRasioDosen($indicator, $prodiId);
-            
-            // Tambahkan case lain di sini (misal: Waktu Tunggu, IPK, dll)
-            // case 'CALC_WAKTU_TUNGGU': 
-            //      return $this->hitungWaktuTunggu(...);
+        if (empty($indicator->custom_formula)) {
+            return 0;
+        }
 
-            default:
-                return 0;
+        // Default tahun ini jika tidak dikirim
+        $year = $year ?? date('Y');
+
+        // Kirim tahun ke fungsi pengambilan variabel
+        $variables = $this->getVariablesForProdi($prodiId, $year);
+
+        // --- UNTUK DEBUGGING (Cek apakah angka masuk) ---
+        // Hapus tanda // di bawah ini jika hasil masih 0
+        // dd($variables); 
+        // ------------------------------------------------
+
+        $language = new ExpressionLanguage();
+
+        try {
+            $score = $language->evaluate($indicator->custom_formula, $variables);
+
+            // PENTING: Jika rumus Anda menghasilkan 5, tapi disini di-limit min(4),
+            // maka hasilnya akan mentok di 4.
+            // Jika ingin nilai 5 muncul, ganti 4 jadi 5, atau hapus min().
+            return max(0, min(4, $score));
+        } catch (\Exception $e) {
+            return 0;
         }
     }
 
-    /**
-     * Rumus LAM-INFOKOM: Rasio Dosen Tetap (DTPS) terhadap Mahasiswa
-     * Aturan (Contoh): 
-     * - Jika 15 <= Rasio <= 35, Skor = 4
-     * - Jika Rasio < 15 atau > 35, Skor turun proporsional (Contoh logika sederhana)
-     */
-    private function hitungRasioDosen($indicator, $prodiId)
+    private function getVariablesForProdi($prodiId, $year)
     {
-        // A. Ambil Data Mentah dari Database
-        // Kita butuh variabel 'DTPS_JML' dan 'MHS_AKTIF_JML' (sesuai kode di Seeder tadi)
-        
-        $jmlDosen = $this->getRawValue($prodiId, 'DTPS_JML');
-        $jmlMhs   = $this->getRawValue($prodiId, 'MHS_AKTIF_JML');
+        // 1. Ambil Semua Definisi Variabel
+        $allVars = \App\Models\RawDataVariable::all();
 
-        // B. Validasi division by zero
-        if ($jmlDosen <= 0) return 0;
+        // 2. Ambil Data Mentah dari Database (Hanya yang static/inputan)
+        $result = [];
 
-        // C. Hitung Rasio
-        $rasio = $jmlMhs / $jmlDosen;
-
-        // D. Terapkan Logika Penilaian (Sesuai Matriks LAM-INFOKOM)
-        // Jika 15 <= R <= 35 --> Skor 4
-        if ($rasio >= 15 && $rasio <= 35) {
-            return 4.0;
-        }
-        
-        // Jika Rasio > 35 (Kelebihan mahasiswa), skor turun
-        // Rumus contoh: Skor = 4 - ((Rasio - 35) * 0.1)
-        if ($rasio > 35) {
-            $skor = 4 - (($rasio - 35) * 0.1); 
-            return max(0, $skor); // Jangan sampai minus
-        }
-
-        // Jika Rasio < 15 (Kelebihan dosen), skor turun
-        if ($rasio < 15) {
-            $skor = 4 - ((15 - $rasio) * 0.1);
-            return max(0, $skor);
-        }
-
-        return 0;
-    }
-
-    /**
-     * Helper untuk mengambil nilai raw terakhir
-     */
-    private function getRawValue($prodiId, $variableCode)
-    {
-        // Cari ID variable berdasarkan Code
-        $var = \App\Models\RawDataVariable::where('code', $variableCode)->first();
-        
-        if (!$var) return 0;
-
-        // Ambil nilai tahun terakhir (TS)
-        $data = ProdiRawValue::where('prodi_id', $prodiId)
+        // Step A: Masukkan data Static (Input Manual) dulu
+        foreach ($allVars as $var) {
+            if ($var->type == 'static') {
+                $data = \App\Models\ProdiRawValue::where('prodi_id', $prodiId)
                     ->where('variable_id', $var->id)
-                    ->orderBy('year', 'desc') // Asumsi tahun terbesar adalah TS
+                    ->where('year', $year)
                     ->first();
+                $result[$var->code] = $data ? (float) $data->value : 0.0;
+            }
+        }
 
-        return $data ? $data->value : 0;
+        // Step B: Hitung data Formula (Variable Turunan)
+        // Kita pakai ExpressionLanguage juga disini
+        $language = new ExpressionLanguage();
+
+        foreach ($allVars as $var) {
+            if ($var->type == 'formula' && !empty($var->calculation_formula)) {
+                try {
+                    // Pastikan semua variabel di $result yang bernilai null diubah jadi 0
+                    foreach ($result as $key => $val) {
+                        if (is_null($val)) $result[$key] = 0.0;
+                    }
+
+                    $calculatedValue = $language->evaluate($var->calculation_formula, $result);
+                    $result[$var->code] = (float) $calculatedValue;
+                } catch (\Exception $e) {
+                    $result[$var->code] = 0.0;
+                } catch (\Exception $e) {
+                    // Jika error (misal dibagi 0), set 0
+                    $result[$var->code] = 0.0;
+                }
+            }
+        }
+
+        return $result;
     }
 }

@@ -2,10 +2,24 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Indicator extends Model
 {
+    use HasFactory;
+
+    // Tambahkan 'custom_formula' di sini
+    protected $fillable = [
+        'cluster_id',
+        'code',
+        'description',
+        'weight',
+        'type',
+        'classification',             // QUALITATIVE / QUANTITATIVE
+        'calculation_code', // (Legacy/Lama, boleh dibiarkan)
+        'custom_formula',   // <--- TAMBAHKAN INI (Fitur Baru)
+    ];
     protected $guarded = ['id'];
 
     public function cluster()

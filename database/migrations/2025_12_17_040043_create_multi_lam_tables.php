@@ -25,8 +25,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('model_id')->constrained('accreditation_models')->onDelete('cascade');
             $table->string('name', 255); // "C. Pendidikan"
-            $table->string('code', 20)->nullable(); 
-            $table->decimal('weight', 5, 2)->default(0); 
+            $table->string('code', 20)->nullable();
+            $table->decimal('weight', 5, 2)->default(0);
             $table->integer('order_index')->default(0);
             $table->timestamps();
         });
@@ -56,9 +56,11 @@ return new class extends Migration
         // 5. Definisi Variabel Data Mentah (Input Angka)
         Schema::create('raw_data_variables', function (Blueprint $table) {
             $table->id();
-            $table->string('code', 50)->unique(); // 'NUM_DTPS_S3'
-            $table->string('name', 150);
+            $table->string('code', 50)->unique();
+            $table->string('name', 250);
             $table->text('description')->nullable();
+            $table->enum('type', ['static', 'formula'])->default('static');
+            $table->text('calculation_formula')->nullable(); 
             $table->timestamps();
         });
 
@@ -72,12 +74,12 @@ return new class extends Migration
         // 7. Nilai Data Mentah Prodi
         Schema::create('prodi_raw_values', function (Blueprint $table) {
             $table->id();
-            
+
             // Relasi ke tabel 'prodis' LAMA Anda
             $table->foreignId('prodi_id')->constrained('prodis')->onDelete('cascade');
 
             $table->foreignId('variable_id')->constrained('raw_data_variables')->onDelete('cascade');
-            $table->integer('year'); 
+            $table->integer('year');
             $table->decimal('value', 12, 2)->default(0);
             $table->index(['prodi_id', 'variable_id', 'year']);
             $table->timestamps();
@@ -87,15 +89,15 @@ return new class extends Migration
         // Menggantikan tabel 'scores' lama
         Schema::create('assessment_scores', function (Blueprint $table) {
             $table->id();
-            
+
             // Relasi ke tabel 'prodis' LAMA Anda
             $table->foreignId('prodi_id')->constrained('prodis')->onDelete('cascade');
 
             $table->foreignId('indicator_id')->constrained('indicators')->onDelete('cascade');
             $table->foreignId('selected_rubric_id')->nullable()->constrained('indicator_rubrics');
-            
+
             $table->decimal('final_score', 5, 2);
-            
+
             // --- Kolom Tambahan (Adaptasi dari PDF tabel 'scores' lama) ---
             $table->text('notes')->nullable(); // Catatan asesor
             $table->string('proof_file_url')->nullable(); // Upload file
