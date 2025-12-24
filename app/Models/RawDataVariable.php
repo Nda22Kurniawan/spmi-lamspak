@@ -13,4 +13,13 @@ class RawDataVariable extends Model
     {
         return $this->belongsToMany(Indicator::class, 'indicator_variables', 'variable_id', 'indicator_id');
     }
+
+    protected $fillable = [
+        'model_id',
+        'code',
+        'name',
+        'description',
+        'type',
+        'calculation_formula' // <--- Tambahkan ini
+    ];
 }

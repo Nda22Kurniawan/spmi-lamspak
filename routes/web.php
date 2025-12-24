@@ -19,6 +19,8 @@ use App\Http\Controllers\DropdownController;
 use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\ClusterController;
 use App\Http\Controllers\DiagramController;
+use App\Http\Controllers\RawDataVariableController;
+use App\Http\Controllers\RubricController;
 use Illuminate\Support\Facades\Route;
 use App\Models\Jenjang;
 use App\Models\Prodi;
@@ -172,7 +174,14 @@ Route::middleware(['auth', 'cekRole:Admin,Ketua LPM,Ketua Program Studi,Dosen,UP
     Route::delete('indikator/score-hapus/{score}', [IndikatorController::class, 'hapusScore']);
     Route::get('indikator/score/edit/{score}', [IndikatorController::class, 'editScore']);
     Route::put('indikator/score/put/{score}', [IndikatorController::class, 'putScore']);
-
+    Route::get('/indikator', [IndikatorController::class, 'index'])->name('indikator.index');
+    Route::get('/indikator/tambah', [IndikatorController::class, 'create'])->name('indikator.create');
+    Route::post('/indikator/simpan', [IndikatorController::class, 'storeWizard'])->name('indikator.storeWizard');
+    Route::get('/indikator/{id}/edit', [IndikatorController::class, 'edit'])->name('indikator.edit');
+    Route::put('/indikator/{id}', [IndikatorController::class, 'update'])->name('indikator.update');
+    Route::delete('/indikator/{id}', [IndikatorController::class, 'destroy'])->name('indikator.destroy');
+    Route::get('/api/get-variables-by-lam/{lam_id}', [IndikatorController::class, 'getVariablesByLam']);
+    
     // Element
     foreach ($prodis as $prodi) {
         Route::get("element/{$prodi->kode}", [ElementController::class, 'index'])->name("element-{$prodi->kode}");
@@ -236,6 +245,18 @@ Route::middleware(['auth', 'cekRole:Admin,Ketua LPM,Ketua Program Studi,Dosen,UP
     Route::get('data/mahasiswa/tambah/{prodi:kode}', [MahasiswaController::class, 'tambah']);
     Route::post('data/mahasiswa/store', [MahasiswaController::class, 'store']);
 
+    Route::get('/variabel', [RawDataVariableController::class, 'index'])->name('variable.index');
+    Route::post('/variabel', [RawDataVariableController::class, 'store'])->name('variable.store');
+    Route::put('/variabel/{id}', [RawDataVariableController::class, 'update'])->name('variable.update'); // <--- INI BARU
+    Route::delete('/variabel/{id}', [RawDataVariableController::class, 'destroy'])->name('variable.destroy');
+
+    Route::get('/master/variabel-data', [RawDataVariableController::class, 'index'])->name('variable.index');
+    Route::post('/master/variabel-data/simpan', [RawDataVariableController::class, 'store'])->name('variable.store');
+    Route::delete('/master/variabel-data/hapus/{id}', [RawDataVariableController::class, 'destroy'])->name('variable.destroy');
+    Route::get('/api/get-variables-by-lam/{lam_id}', [RawDataVariableController::class, 'getVariablesByLam'])
+    ->name('api.variables.by.lam');
+
+    Route::resource('rubrics', RubricController::class)->except(['create', 'show', 'edit']);
 });
 
 // =============================================================

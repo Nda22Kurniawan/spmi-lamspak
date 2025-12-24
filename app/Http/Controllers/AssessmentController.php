@@ -26,54 +26,58 @@ class AssessmentController extends Controller
     // =========================================================================
     // 1. HALAMAN DATA STATISTIK (Input Data Mentah)
     // =========================================================================
-    public function indexRawData()
+    public function indexRawData(Request $request)
     {
-        // Ambil semua variabel data mentah yang ada di database
-        $variables = RawDataVariable::all();
+        // 1. Ambil ID Prodi (Bisa dari parameter URL atau Default User)
+        // Simulasi: Ambil dari request ?prodi_id=1 atau default prodi pertama
+        $prodiId = $request->get('prodi_id');
+        // Jika null, ambil prodi user atau prodi pertama
+        if (!$prodiId) {
+            $firstProdi = Prodi::first();
+            $prodiId = $firstProdi->id;
+        }
 
-        // Ambil data yang sudah pernah diisi oleh Prodi yang sedang login (jika ada)
-        // Asumsi: User login punya relasi ke Prodi, atau kita ambil dari session
-        // Jika user admin, mungkin butuh pilih prodi. Di sini kita simplifikasi ambil prodi user login.
+        $prodi = Prodi::findOrFail($prodiId);
 
-        $user = Auth::user();
-        // Pastikan user punya method prodi() atau property prodi_id
-        // $prodiId = $user->prodi_id; 
+        // --- TAMBAHKAN BARIS INI (Ambil Semua Prodi untuk Dropdown) ---
+        $allProdis = Prodi::all();
+        // 2. Validasi LAM
+        if (!$prodi->accreditation_model_id) {
+            return redirect()->back()->with('error', 'Prodi ini belum disetting LAM-nya.');
+        }
 
-        // Untuk sementara hardcode atau ambil dari request jika admin
-        $prodiId = request('prodi_id') ?? 1; // Default 1 untuk testing
+        // 3. Ambil Variabel DKPS
+        $variables = RawDataVariable::where('model_id', $prodi->accreditation_model_id)->get();
 
+        // 4. Ambil Data Existing (Tahun ini)
+        $year = $request->get('year', date('Y'));
         $existingValues = ProdiRawValue::where('prodi_id', $prodiId)
-            ->get()
-            ->mapWithKeys(function ($item) {
-                return [$item->variable_id => $item->value];
-            });
+            ->where('year', $year)
+            ->pluck('value', 'variable_id');
 
-        return view('assessment.raw_data', compact('variables', 'existingValues', 'prodiId'));
+        return view('assessment.raw_data', compact('prodi', 'variables', 'existingValues', 'year', 'allProdis'));
     }
 
     public function storeRawData(Request $request)
     {
         $request->validate([
-            'prodi_id' => 'required|exists:prodis,id',
-            'year'     => 'required|integer',
-            'data'     => 'required|array'
+            'prodi_id' => 'required',
+            'year' => 'required',
+            'values' => 'array',
         ]);
 
-        foreach ($request->data as $code => $value) {
-            $variable = RawDataVariable::where('code', $code)->first();
-            if ($variable) {
-                ProdiRawValue::updateOrCreate(
-                    [
-                        'prodi_id'    => $request->prodi_id,
-                        'variable_id' => $variable->id,
-                        'year'        => $request->year
-                    ],
-                    ['value' => $value]
-                );
-            }
+        foreach ($request->values as $variableId => $value) {
+            ProdiRawValue::updateOrCreate(
+                [
+                    'prodi_id' => $request->prodi_id,
+                    'variable_id' => $variableId,
+                    'year' => $request->year
+                ],
+                ['value' => $value]
+            );
         }
 
-        return redirect()->back()->with('success', 'Data statistik berhasil disimpan.');
+        return back()->with('success', 'Data statistik berhasil disimpan.');
     }
 
     // =========================================================================
@@ -123,28 +127,26 @@ class AssessmentController extends Controller
             'prodi_id'     => 'required|exists:prodis,id',
             'indicator_id' => 'required|exists:indicators,id',
             'rubric_id'    => 'nullable|exists:indicator_rubrics,id',
-            'proof_link'   => 'nullable|url'
+            'proof_link'   => 'nullable|url',
+            'notes'        => 'nullable|string' // Sesuai nama kolom di DB
         ]);
 
-        $indicator = Indicator::find($request->indicator_id);
+        $indicator = Indicator::findOrFail($request->indicator_id);
         $finalScore = 0;
         $selectedRubricId = null;
 
-        // A. Kuantitatif (Hitung Rumus)
         if ($indicator->type === 'QUANTITATIVE') {
             $finalScore = $this->calculator->calculate($indicator, $request->prodi_id);
-        }
-        // B. Kualitatif (Pilih Rubrik)
-        else {
-            if (!$request->rubric_id) {
-                return response()->json(['error' => 'Pilih rubrik penilaian.'], 400);
-            }
-            $rubric = IndicatorRubric::find($request->rubric_id);
+        } else {
+            $rubric = IndicatorRubric::findOrFail($request->rubric_id);
             $finalScore = $rubric->score_value;
             $selectedRubricId = $rubric->id;
         }
 
-        // Simpan
+        // Hitung Skor Akhir (Weighted Score)
+        $weightedScore = $finalScore * ($indicator->weight ?? 0);
+
+        // Simpan ke kolom 'notes' yang sudah ada
         $score = AssessmentScore::updateOrCreate(
             [
                 'prodi_id'     => $request->prodi_id,
@@ -153,16 +155,20 @@ class AssessmentController extends Controller
             [
                 'selected_rubric_id' => $selectedRubricId,
                 'final_score'        => $finalScore,
+                'weighted_score'     => $weightedScore,
                 'proof_link'         => $request->proof_link,
-                'notes'              => $request->notes,
+                'notes'              => $request->notes, // Menggunakan kolom notes
                 'status'             => 'DRAFT'
             ]
         );
 
+        $totalOverall = AssessmentScore::where('prodi_id', $request->prodi_id)->sum('weighted_score');
+
         return response()->json([
-            'message' => 'Tersimpan',
-            'score'   => $finalScore,
-            'color'   => $finalScore >= 3.0 ? 'success' : ($finalScore >= 2.0 ? 'warning' : 'danger')
+            'message'             => 'Tersimpan',
+            'score'               => number_format($finalScore, 2),
+            'weighted_score'      => number_format($weightedScore, 2),
+            'total_overall_score' => number_format($totalOverall, 2),
         ]);
     }
 
@@ -194,42 +200,54 @@ class AssessmentController extends Controller
     // B. Tampilkan Form Asesmen Spesifik Prodi
     public function formAsesmen($prodi_id)
     {
-        // 1. Ambil Data Prodi
         $prodi = Prodi::findOrFail($prodi_id);
 
-        // 2. Cek apakah Prodi ini sudah disetting LAM-nya?
         if (!$prodi->accreditation_model_id) {
             return redirect()->route('assessment.pilih_prodi')
-                ->with('error', 'Prodi ' . $prodi->name . ' belum disetting menggunakan Instrumen Akreditasi apapun.');
+                ->with('error', 'Prodi belum disetting Instrumen Akreditasi.');
         }
 
-        // 3. Ambil Model LAM dengan SORTING / URUTAN yang Benar
         $model = AccreditationModel::with([
-            'clusters' => function ($query) {
-                // Urutkan Klaster berdasarkan 'order_index' (No. Urut) dari kecil ke besar
-                $query->orderBy('order_index', 'asc');
-            },
-            'clusters.indicators' => function ($query) {
-                // Urutkan Indikator berdasarkan ID (atau bisa ganti 'code' jika mau urut abjad kode)
-                $query->orderBy('id', 'asc');
-            },
-            'clusters.indicators.rubrics' => function ($query) {
-                // Urutkan Rubrik dari skor terbesar (4) ke terkecil (0)
-                $query->orderBy('score_value', 'desc');
-            }
+            'clusters' => fn($q) => $q->orderBy('order_index', 'asc'),
+            'clusters.indicators' => fn($q) => $q->orderBy('id', 'asc'),
+            'clusters.indicators.rubrics' => fn($q) => $q->orderBy('score_value', 'desc')
         ])->findOrFail($prodi->accreditation_model_id);
 
-        // 4. Ambil Skor EKSISTING khusus untuk Prodi ini
-        $scores = AssessmentScore::where('prodi_id', $prodi->id)
-            ->get()
-            ->keyBy('indicator_id');
+        $year = request('year', date('Y'));
 
-        // Kirim data ke View
+        // --- PERBAIKAN 1: Update simpanan Weighted Score untuk Kuantitatif ---
+        foreach ($model->clusters as $cluster) {
+            foreach ($cluster->indicators as $indicator) {
+                if ($indicator->type === 'QUANTITATIVE') {
+                    $scoreValue = $this->calculator->calculate($indicator, $prodi->id, $year);
+
+                    // Hitung Skor Akhir (Nilai x Bobot)
+                    $weightedValue = $scoreValue * ($indicator->weight ?? 0);
+
+                    AssessmentScore::updateOrCreate(
+                        ['prodi_id' => $prodi->id, 'indicator_id' => $indicator->id],
+                        [
+                            'final_score' => $scoreValue,
+                            'weighted_score' => $weightedValue // Simpan ke kolom baru
+                        ]
+                    );
+                }
+            }
+        }
+
+        $scores = AssessmentScore::where('prodi_id', $prodi->id)->get()->keyBy('indicator_id');
+
+        // --- PERBAIKAN 2: Sederhanakan Perhitungan Total Skor ---
+        // Karena kita sudah punya kolom weighted_score, kita tidak perlu JOIN atau DB::raw lagi
+        $totalScore = AssessmentScore::where('prodi_id', $prodi->id)->sum('weighted_score');
+
         return view('assessment.index', [
-            'model' => $model,
-            'prodi' => $prodi,
-            'scores' => $scores,
-            'prodiId' => $prodi->id
+            'model'      => $model,
+            'prodi'      => $prodi,
+            'scores'     => $scores,
+            'prodiId'    => $prodi->id,
+            'year'       => $year,
+            'totalScore' => $totalScore
         ]);
     }
 }

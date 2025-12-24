@@ -32,8 +32,9 @@ class IndikatorController extends Controller
             // Logika Pencarian
             if ($search) {
                 $query->where(function ($q) use ($search) {
-                    $q->where('code', 'like', "%{$search}%")
-                        ->orWhere('description', 'like', "%{$search}%");
+                    // PERBAIKAN: Tambahkan 'indicators.' di depan nama kolom
+                    $q->where('indicators.code', 'like', "%{$search}%")
+                        ->orWhere('indicators.description', 'like', "%{$search}%");
                 });
             }
 
@@ -47,6 +48,55 @@ class IndikatorController extends Controller
         }
 
         return view('indikator.index', compact('lams', 'selectedLamId', 'indicators', 'search'));
+    }
+
+    public function create()
+    {
+        $lams = AccreditationModel::all();
+        return view('indikator.create_wizard', compact('lams'));
+    }
+
+    public function edit($id)
+    {
+        $indicator = Indicator::with('cluster.model')->findOrFail($id);
+
+        // Kita butuh data LAM dan Klaster untuk dropdown
+        // (Mirip logika di create_wizard, tapi kita set default selected-nya nanti di view)
+        $lams = AccreditationModel::all();
+
+        // Kita juga butuh daftar Klaster milik LAM dari indikator ini agar dropdown klaster terisi
+        $clusters = AssessmentCluster::where('model_id', $indicator->cluster->model_id)
+            ->orderBy('order_index', 'asc')
+            ->get();
+
+        return view('indikator.edit', compact('indicator', 'lams', 'clusters'));
+    }
+
+    // 2. Simpan Perubahan (Update)
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'cluster_id'     => 'required|exists:assessment_clusters,id',
+            'code'           => 'required|string|max:50',
+            'description'    => 'required|string',
+            'type'           => 'required|in:QUALITATIVE,QUANTITATIVE',
+            'weight'         => 'required|numeric|min:0',
+            'classification' => 'nullable|string|max:100', // Tambahkan validasi ini
+            'custom_formula' => 'nullable|string'
+        ]);
+
+        $indicator = Indicator::findOrFail($id);
+        $data = $request->all();
+
+        if ($request->type === 'QUALITATIVE') {
+            $data['custom_formula'] = null;
+        }
+
+        $indicator->update($data);
+
+        $lamId = $indicator->cluster->model_id;
+        return redirect()->route('indikator.index', ['lam_id' => $lamId])
+            ->with('success', 'Indikator berhasil diperbarui.');
     }
 
     // 2. Hapus Indikator
@@ -271,19 +321,43 @@ class IndikatorController extends Controller
         ]);
     }
 
+    public function getVariablesByLam($lam_id)
+    {
+        // Mengambil variabel yang terhubung dengan model_id (LAM)
+        $variables = \App\Models\RawDataVariable::where('model_id', $lam_id)
+            ->orderBy('code', 'asc')
+            ->get(['code', 'name']);
+
+        return response()->json([
+            'variables' => $variables
+        ]);
+    }
+
     public function storeWizard(Request $request)
     {
-        // Validasi & Simpan Indikator Baru
         $request->validate([
-            'cluster_id' => 'required',
-            'code' => 'required',
-            'description' => 'required',
-            'type' => 'required',
-            'weight' => 'required'
+            'cluster_id'     => 'required|exists:assessment_clusters,id',
+            'code'           => 'required|string|max:50',
+            'description'    => 'required|string',
+            'type'           => 'required|in:QUALITATIVE,QUANTITATIVE',
+            'weight'         => 'required|numeric|min:0',
+            'classification' => 'nullable|string|max:100', // Validasi klasifikasi
+            'custom_formula' => 'nullable|string'
         ]);
 
-        Indicator::create($request->all());
+        $data = $request->all();
 
-        return redirect()->back()->with('success', 'Indikator berhasil ditambahkan ke LAM terkait.');
+        if ($request->type === 'QUALITATIVE') {
+            $data['custom_formula'] = null;
+        }
+
+        Indicator::create($data);
+
+        // Redirect Balik ke Index (List)
+        // Kita ambil Model ID dari cluster agar filter LAM-nya tetap aktif saat redirect
+        $lamId = AssessmentCluster::find($request->cluster_id)->model_id;
+
+        return redirect()->route('indikator.index', ['lam_id' => $lamId])
+            ->with('success', 'Indikator berhasil ditambahkan.');
     }
 }
