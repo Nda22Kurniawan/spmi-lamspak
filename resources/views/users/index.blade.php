@@ -32,10 +32,8 @@
                                         <td>{{ $i->name }}</td>
                                         <td>{{ $i->role }}</td>
                                         <td width="150px">
-                                            <a href="{{ url('users/edit/' . $i->id) }}"
-                                                class="btn btn-warning btn-sm">Edit</a>
-                                            <form action="users/hapus/{{ $i->id }}" method="POST"
-                                                class="d-inline">
+                                            <a href="{{ url('users/edit/' . $i->id) }}" class="btn btn-warning btn-sm">Edit</a>
+                                            <form action="users/hapus/{{ $i->id }}" method="POST" class="d-inline">
                                                 @csrf
                                                 @method('delete')
                                                 <button type="submit" class="btn btn-danger btn-sm">Hapus</button>
@@ -57,12 +55,18 @@
                         @if (Auth::user()->role == 'Admin')
                             <li><a href="{{ route('tambah-admin') }}">Admin</a></li>
                         @endif
+
                         <li><a href="{{ route('tambah-lpm') }}">Ketua LPM</a></li>
                         <li><a href="{{ route('tambah-kaprodi') }}">Ketua Program Studi</a></li>
+
+                        <li><a href="{{ route('tambah-sekprodi') }}">Sekretaris Program Studi</a></li>
+
                         <li><a href="{{ route('tambah-dosen') }}">Dosen</a></li>
+
                         @if (Auth::user()->role == 'Admin')
                             <li><a href="{{ route('tambah-upps') }}">UPPS</a></li>
                         @endif
+
                         <li><a href="{{ route('tambah-mhsalm') }}">Mahasiswa / Alumni</a></li>
                     </ul>
                     <hr>

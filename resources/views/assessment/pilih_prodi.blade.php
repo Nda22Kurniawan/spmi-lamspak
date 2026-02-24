@@ -20,11 +20,11 @@
                             </div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $prodi->name }}</div>
                             <div class="mt-2 text-xs text-muted">
-                                Instrumen: 
+                                Instrumen:
                                 @if($prodi->accreditationModel)
-                                    <strong>{{ $prodi->accreditationModel->name }}</strong>
+                                <strong>{{ $prodi->accreditationModel->name }}</strong>
                                 @else
-                                    <span class="text-danger">Belum Diset</span>
+                                <span class="text-danger">Belum Diset</span>
                                 @endif
                             </div>
                         </div>
@@ -34,11 +34,11 @@
                     </div>
                     <hr>
                     @if($prodi->accreditationModel)
-                        <a href="{{ route('assessment.form', $prodi->id) }}" class="btn btn-sm btn-primary btn-block">
-                            <i class="fas fa-edit"></i> Isi Penilaian
-                        </a>
+                    <a href="{{ route('assessment.form_asesmen', $prodi->id) }}" class="btn btn-sm btn-primary btn-block">
+                        <i class="fas fa-edit"></i> Isi Penilaian
+                    </a>
                     @else
-                        <button disabled class="btn btn-sm btn-secondary btn-block">Belum Tersedia</button>
+                    <button disabled class="btn btn-sm btn-secondary btn-block">Belum Tersedia</button>
                     @endif
                 </div>
             </div>

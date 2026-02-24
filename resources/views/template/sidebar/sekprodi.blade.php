@@ -28,14 +28,12 @@
         Sistem Penjaminan Mutu
     </div>
 
-    {{-- 1. Isi Asesmen (Kualitatif & Kuantitatif) --}}
-    {{-- 1. Isi Asesmen --}}
+    {{-- 1. Isi Asesmen (Logic ID Prodi Fix) --}}
     <li class="nav-item {{ request()->routeIs('assessment.form_asesmen') ? 'active' : '' }}">
         @php
-            // PERBAIKAN: Ambil ID Prodi berdasarkan Kode Prodi User
             $userProdiId = 0;
+            // Cek apakah user punya kolom prodi_kode
             if(Auth::user()->prodi_kode) {
-                // Cari data prodi asli untuk mendapatkan ID-nya (angka)
                 $prodiData = \App\Models\Prodi::where('kode', Auth::user()->prodi_kode)->first();
                 $userProdiId = $prodiData ? $prodiData->id : 0;
             }
@@ -69,7 +67,7 @@
         Administrasi Prodi
     </div>
 
-    {{-- Pengaturan Prodi (Target & Mahasiswa) --}}
+    {{-- Pengaturan Prodi --}}
     <li class="nav-item">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#pengaturan" aria-expanded="true"
             aria-controls="pengaturan">
@@ -86,7 +84,6 @@
 
     <hr class="sidebar-divider d-none d-md-block">
 
-    {{-- Tombol Toggle --}}
     <div class="text-center d-none d-md-inline">
         <button class="rounded-circle border-0" id="sidebarToggle"></button>
     </div>

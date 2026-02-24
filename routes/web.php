@@ -36,12 +36,13 @@ Route::post('logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('tabel/{prodi:kode}', [HomeController::class, 'tabel']);
 Route::get('tabel/berkas/{element}', [HomeController::class, 'berkas']);
+Route::get('tabel/{prodi:kode}', [HomeController::class, 'tabelPublic']);
 Route::get('tabel/view/{berkas}', [HomeController::class, 'view']);
 Route::get('single-search', [HomeController::class, 'singleSearch'])->name('singleSearch');
 Route::post('single-search/hasil', [HomeController::class, 'hasilsingleSearch']);
 Route::get('multiple-search', [HomeController::class, 'multiSearch'])->name('multipleSearch');
 Route::post('multi-search/hasil', [HomeController::class, 'hasilmultiSearch']);
-Route::get('diagram', [HomeController::class, 'diagram'])->name('diagram'); // Diagram Lama
+Route::get('diagram', [DiagramController::class, 'pencapaian'])->name('diagram'); // Diagram Baru
 Route::get('diagram/login', fn() => redirect()->route('login'));
 // Route::get('diagram/{prodi:kode}', [HomeController::class, 'radarDiagram']); // Diagram Lama
 
@@ -50,7 +51,7 @@ Route::get('diagram/login', fn() => redirect()->route('login'));
 // PROTECTED ROUTES (Butuh Login & Role)
 // =============================================================
 
-Route::middleware(['auth', 'cekRole:Admin,Ketua LPM,Ketua Program Studi,Dosen,UPPS,Mahasiswa,Alumni'])->group(function () {
+Route::middleware(['auth', 'cekRole:Admin,Ketua LPM,Ketua Program Studi,Sekretaris Program Studi,Tim Akreditasi Program Studi,Dosen,UPPS,Mahasiswa,Alumni'])->group(function () {
     
     // Wrap try-catch agar tidak error saat migrate fresh
     try {
@@ -105,7 +106,7 @@ Route::middleware(['auth', 'cekRole:Admin,Ketua LPM,Ketua Program Studi,Dosen,UP
 
     // 2. Asesmen Mutu (Penilaian)
     Route::get('/asesmen/pilih-prodi', [AssessmentController::class, 'pilihProdi'])->name('assessment.pilih_prodi');
-    Route::get('/asesmen/form/{prodi_id}', [AssessmentController::class, 'formAsesmen'])->name('assessment.form');
+    Route::get('/asesmen/form/{prodi_id}', [AssessmentController::class, 'formAsesmen'])->name('assessment.form_asesmen');
     Route::post('/spmi/asesmen/hitung', [AssessmentController::class, 'assess'])->name('assessment.score');
 
 
@@ -226,9 +227,11 @@ Route::middleware(['auth', 'cekRole:Admin,Ketua LPM,Ketua Program Studi,Dosen,UP
     Route::get('users/tambah/admin', [AdminController::class, 'tambahAdmin'])->name('tambah-admin');
     Route::get('users/tambah/ketua-lpm', [AdminController::class, 'tambahLpm'])->name('tambah-lpm');
     Route::get('users/tambah/ketua-program-studi', [AdminController::class, 'tambahKaprodi'])->name('tambah-kaprodi');
+    Route::get('users/tambah/sekretaris-program-studi', [AdminController::class, 'tambahSekprodi'])->name('tambah-sekprodi');
     Route::get('users/tambah/dosen', [AdminController::class, 'tambahDosen'])->name('tambah-dosen');
     Route::get('users/tambah/upps', [AdminController::class, 'tambahUpps'])->name('tambah-upps');
     Route::get('users/tambah/mahasiswa-alumni', [AdminController::class, 'tambahMhsAlm'])->name('tambah-mhsalm');
+    Route::get('users/tambah/tim-akreditasi-prodi', [AdminController::class, 'tambahTimAkreditasi'])->name('tambah-tim-akreditasi');
     Route::post('users/store', [AdminController::class, 'store']);
     Route::delete('users/hapus/{user}', [AdminController::class, 'hapus']);
     Route::get('users/edit/{user}', [AdminController::class, 'edit']);

@@ -194,4 +194,33 @@ class HomeController extends Controller
         // 4. Kirim ke View
         return view('home.diagram', compact('prodi', 'model', 'labels', 'dataScores', 'maxScores'));
     }
+
+    public function tabelPublic(Prodi $prodi)
+    {
+        // 1. Ambil model instrumen beserta klaster dan indikatornya
+        $model = $prodi->accreditationModel()->with('clusters.indicators')->first();
+
+        $scores = [];
+        $totalScore = 0;
+
+        if ($model) {
+            // 2. Ambil semua skor yang sudah disimpan untuk prodi ini
+            // (Relasi 'rubric' dipanggil agar deskripsi capaian kualitatif bisa tampil)
+            $rawScores = AssessmentScore::where('prodi_id', $prodi->id)->get();
+
+            // 3. Mapping data agar mudah diakses di View (berdasarkan indicator_id)
+            foreach ($rawScores as $score) {
+                $scores[$score->indicator_id] = $score;
+                $totalScore += $score->weighted_score; // Hitung total nilai terbobot
+            }
+        }
+
+        return view('home.tabel', [
+            'prodi' => $prodi,
+            'model' => $model,
+            'scores' => $scores,
+            'totalScore' => $totalScore,
+            'year' => date('Y') // Tahun Saat Ini
+        ]);
+    }
 }

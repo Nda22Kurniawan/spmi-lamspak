@@ -37,6 +37,21 @@ class AdminController extends Controller
         ]);
     }
 
+    public function tambahSekprodi()
+    {
+        return view('users.tambah.sekprodi', [
+            'prodi' => Prodi::all(),
+        ]);
+    }
+
+    public function tambahTimAkreditasi()
+    {
+        // Tim Akreditasi terikat dengan Prodi, jadi kita butuh data Prodi
+        return view('users.tambah.tim_akreditasi', [
+            'prodi' => Prodi::all(),
+        ]);
+    }
+
     public function tambahDosen()
     {
         return view('users.tambah.dosen');
@@ -81,7 +96,6 @@ class AdminController extends Controller
         <strong>Data Berhasil Ditambahkan</strong>
     </div>');
         return redirect()->route('users');
-
     }
 
     public function edit(User $user)

@@ -17,7 +17,9 @@ class CreateUsersTable extends Migration
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
-            $table->enum('role', ['Admin', 'Dosen', 'Mahasiswa']);
+            $table->string('role');
+            $table->string('prodi_kode')->nullable();
+            $table->string('prodi_name')->nullable();
             $table->string('password');
             $table->timestamps();
         });

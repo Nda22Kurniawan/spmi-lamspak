@@ -1,157 +1,96 @@
-@extends('template.HomeView',['title'=>"Diagram Pencapaian"])
+@extends('template.HomeView', ['title' => "Diagram Pencapaian"])
+
 @section('content')
-
-
 <main id="main">
 
-
-    <!-- ======= About Us Section ======= -->
     <section>
         <div class="container">
 
             <div class="section-title">
                 <h2>Diagram Pencapaian</h2>
-                <p>Berikut ini adalah diagram pencapaian nilai asessmen setiap Program Studi di FTIK
-                </p>
+                <p>Berikut ini adalah diagram pencapaian nilai asessmen setiap Program Studi di FTIK</p>
             </div>
 
-            <div class="row">
+            <div class="row border p-4 shadow-sm rounded">
                 <div class="col">
-                    <div class="card">
-                        <canvas id="barChart" width="300" height="300"></canvas>
+                    {{-- Tambahkan wrapper dengan height agar grafik responsif dan tidak kebesaran --}}
+                    <div style="height: 400px; width: 100%;">
+                        <canvas id="barChart"></canvas>
+                    </div>
+                    <div class="mt-3 text-center small text-muted font-italic">
+                        * Arahkan kursor dan klik pada batang grafik untuk melihat detail laporan mutu Program Studi.
                     </div>
                 </div>
             </div>
 
         </div>
     </section>
-    <!-- End About Us Section -->
-
-
-</main>
-<!-- End #main -->
+    </main>
 @endsection
+
 @section('script')
-<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    const diagram = {
+    const ctx = document.getElementById('barChart').getContext('2d');
+
+    // Mengambil data yang dikirim dari method pencapaian() di Controller
+    const labelsProdi = {!! json_encode($daftarProdi ?? []) !!};
+    const dataSkor = {!! json_encode($skorTotalProdi ?? []) !!};
+    const linksProdi = {!! json_encode($linkProdi ?? []) !!};
+
+    const myChart = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: ['Teknik Informatika', 'Sistem Informasi', 'Ilmu Komunikasi', 'Pariwisata'],
-            labelsLink: ['http://localhost:8000/diagram/TI',
-                'http://localhost:8000/diagram/SI', 'http://localhost:8000/diagram/IK',
-                'http://localhost:8000/diagram/PW'
-            ],
+            labels: labelsProdi,
             datasets: [{
-                label: 'Nilai Assesmen Tercapai',
-                data: [<?= $ass['TI'] ?>, <?= $ass['SI'] ?>, <?= $ass['IK'] ?>, <?= $ass['PW'] ?>,
-
-                ],
+                label: 'Nilai Assesmen Terbobot',
+                data: dataSkor,
                 backgroundColor: [
-                    'rgba(255, 99, 132, 0.2)',
-                    'rgba(255, 159, 64, 0.2)',
-                    'rgba(255, 205, 86, 0.2)',
-                    'rgba(75, 192, 192, 0.2)',
-                    'rgba(54, 162, 235, 0.2)',
-                    'rgba(153, 102, 255, 0.2)',
-                    'rgba(201, 203, 207, 0.2)'
+                    'rgba(255, 99, 132, 0.7)',
+                    'rgba(54, 162, 235, 0.7)',
+                    'rgba(255, 205, 86, 0.7)',
+                    'rgba(75, 192, 192, 0.7)',
+                    'rgba(153, 102, 255, 0.7)'
                 ],
                 borderColor: [
                     'rgb(255, 99, 132)',
-                    'rgb(255, 159, 64)',
+                    'rgb(54, 162, 235)',
                     'rgb(255, 205, 86)',
                     'rgb(75, 192, 192)',
-                    'rgb(54, 162, 235)',
-                    'rgb(153, 102, 255)',
-                    'rgb(201, 203, 207)'
+                    'rgb(153, 102, 255)'
                 ],
-                borderWidth: 1
+                borderWidth: 1,
+                borderRadius: 4 // Membuat sudut atas batang sedikit melengkung
             }]
         },
         options: {
-            responsive: true,
-        }
-
-    }
-    const ctx = document.getElementById('barChart');
-    const myChart = new Chart(ctx, diagram);
-
-    // const diagram2 = {
-    //     type: 'radar',
-    //     data: {
-    //         labels: [
-    //             'A. Kondisi Eksternal',
-    //             'B. Profil Unit Pengelola Program Studi',
-    //             'C.1. Visi, Misi, Tujuan dan Strategi',
-    //             'C.2. Tata Pamong, Tata Kelola dan Kerjasama',
-    //             'C.3. Mahasiswa',
-    //             'C.4. Sumber Daya Manusia',
-    //             'C.5. Keuangan, Sarana dan Prasarana',
-    //             'C.6. Pendidikan',
-    //             'C.7. Penelitian',
-    //             'C.8. Pengabdian kepada Masyarakat',
-    //             'C.9. Luaran dan Capaian Tridharma',
-    //             'D. Suplemen Program Studi',
-    //             'E. Rencana Pengembangan'
-    //         ],
-    //         datasets: [{
-    //             label: 'Nilai Asesmen Tercapai - Chart 2',
-    //             data: [3.0, 2.8, 2.6, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0, 3.6, 3.4, 3.2, 3.0],
-    //             backgroundColor: 'rgba(255, 99, 132, 0.2)',
-    //             borderColor: 'rgba(255, 99, 132, 1)',
-    //             borderWidth: 1,
-    //             pointBackgroundColor: 'rgba(255, 99, 132, 1)'
-    //         }]
-    //     },
-    //     options: {
-    //         responsive: true,
-    //         scales: {
-    //             r: {
-    //                 angleLines: {
-    //                     display: false
-    //                 },
-    //                 suggestedMin: 0,
-    //                 suggestedMax: 5
-    //             }
-    //         }
-    //     }
-    // };
-
-    // const ctx2 = document.getElementById('radarChart2').getContext('2d');
-    // new Chart(ctx2, diagram2);
-
-
-    function clickableScale(canvas, click) {
-
-        const height = myChart.scales.x.height
-        const top = myChart.scales.x.top
-        const bottom = myChart.scales.x.bottom
-        const left = myChart.scales.x.left
-        const right = myChart.scales.x.maxWidth / myChart.scales.x.ticks.length
-        const DIFF = right + left
-
-        // console.log(right);
-        let resetCoordinates = canvas.getBoundingClientRect()
-
-        const x = click.clientX - resetCoordinates.left;
-        const y = click.clientY - resetCoordinates.top;
-        // console.log(x);
-
-
-        for (let i = 0; i < myChart.scales.x.ticks.length; i++) {
-
-            if (x >= left + (right * i) && x <= DIFF + (right * i) && y >= top && y <= bottom) {
-                // console.log(i);
-                window.open(myChart.config.data.labelsLink[i])
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    // max: 4.0, // Hilangkan komentar jika ingin mematok nilai maksimal sumbu Y
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false // Disembunyikan karena label di bawah sudah mewakili nama Prodi
+                }
+            },
+            // Fitur klik bawaan Chart.js (Menggantikan fungsi clickableScale yang rumit)
+            onClick: (e, activeElements) => {
+                if (activeElements.length > 0) {
+                    const dataIndex = activeElements[0].index;
+                    const url = linksProdi[dataIndex];
+                    if(url) {
+                        window.location.href = url; // Pindah ke halaman detail
+                    }
+                }
+            },
+            // Mengubah kursor panah menjadi bentuk tangan (pointer) saat menyorot batang grafik
+            onHover: (event, chartElement) => {
+                event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
             }
         }
-    }
-
-    ctx.addEventListener('click', (e) => {
-        clickableScale(ctx, e)
-        myChart.resize();
-        myChart.update();
-    })
+    });
 </script>
-
 @endsection

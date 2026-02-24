@@ -72,4 +72,27 @@ class DiagramController extends Controller
 
         return view('diagram.show', compact('prodi', 'model', 'labels', 'scores', 'clusterCounts', 'weightedScores'));
     }
+
+    public function pencapaian()
+    {
+        $prodis = Prodi::all();
+        
+        $daftarProdi = [];
+        $skorTotalProdi = [];
+        $linkProdi = [];
+
+        foreach ($prodis as $prodi) {
+            $daftarProdi[] = $prodi->name;
+
+            $linkProdi[] = url('/diagram/' . $prodi->id); 
+            
+            $totalSkor = AssessmentScore::where('prodi_id', $prodi->id)
+                                        ->sum('weighted_score');
+                                        
+            $skorTotalProdi[] = round($totalSkor, 2);
+        }
+
+        // Return ke view yang Anda sebutkan
+        return view('home.diagram.index', compact('daftarProdi', 'skorTotalProdi', 'linkProdi'));
+    }
 }
