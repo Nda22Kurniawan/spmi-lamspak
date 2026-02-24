@@ -267,12 +267,12 @@
                     <li><a class="nav-link scrollto {{ request()->is('diagram*') ? 'active' : '' }}"
                             href="{{ route('diagram') }}">Diagram
                             Pencapaian</a></li>
-                    <li class="dropdown"><a href="#"><span>Search</span> <i class="bi bi-chevron-down"></i></a>
+                    <!-- <li class="dropdown"><a href="#"><span>Search</span> <i class="bi bi-chevron-down"></i></a>
                         <ul>
                             <li><a href="{{ route('multipleSearch') }}">Multiple Search</a></li>
                             <li><a href="{{ route('singleSearch') }}">Single Search</a></li>
                         </ul>
-                    </li>
+                    </li> -->
                     <li class="dropdown"><a href="#"><span>Berkas</span> <i class="bi bi-chevron-down"></i></a>
                         <ul>
                             @foreach ($data['p'] as $pr)
@@ -318,10 +318,10 @@
                             <li><i class="bi bi-chevron-right"></i> <a href="{{ route('home') }}">Home</a></li>
                             <li><i class="bi bi-chevron-right"></i> <a href="{{ route('diagram') }}">Diagram
                                     Pencapaian</a></li>
-                            <li><i class="bi bi-chevron-right"></i> <a href="{{ route('multipleSearch') }}">Multiple
+                            <!-- <li><i class="bi bi-chevron-right"></i> <a href="{{ route('multipleSearch') }}">Multiple
                                     Search</a></li>
                             <li><i class="bi bi-chevron-right"></i> <a href="{{ route('singleSearch') }}">Single
-                                    Search</a></li>
+                                    Search</a></li> -->
                         </ul>
                     </div>
 

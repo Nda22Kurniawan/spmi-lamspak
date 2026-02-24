@@ -112,6 +112,19 @@
                         </select>
                     </div>
                     <div class="card-body">
+                        
+                        {{-- [BARU] Kotak Pencarian --}}
+                        <div class="row mb-3">
+                            <div class="col-md-6 offset-md-6">
+                                <div class="input-group input-group-sm">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                    </div>
+                                    <input type="text" id="searchInput" class="form-control" placeholder="Cari Kode atau Nama Data...">
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="table-responsive">
                             <table class="table table-bordered table-sm table-hover">
                                 <thead class="thead-light">
@@ -124,9 +137,10 @@
                                 </thead>
                                 <tbody>
                                     @forelse($variables as $var)
-                                        <tr class="{{ $editVariable && $editVariable->id == $var->id ? 'table-warning' : '' }}">
-                                            <td class="align-middle"><code>{{ $var->code }}</code></td>
-                                            <td class="align-middle">
+                                        {{-- [BARU] Tambahan class 'var-row' untuk target javascript --}}
+                                        <tr class="var-row {{ $editVariable && $editVariable->id == $var->id ? 'table-warning' : '' }}">
+                                            <td class="align-middle var-kode"><code>{{ $var->code }}</code></td>
+                                            <td class="align-middle var-nama">
                                                 <span class="font-weight-bold">{{ $var->name }}</span>
                                                 <div class="text-xs text-muted">{{ $var->description }}</div>
                                             </td>
@@ -154,7 +168,7 @@
                                             </td>
                                         </tr>
                                     @empty
-                                        <tr>
+                                        <tr id="emptyRow">
                                             <td colspan="4" class="text-center text-muted py-3">
                                                 Belum ada variabel untuk LAM ini.
                                             </td>
@@ -182,9 +196,28 @@
         }
     }
     
-    // Jalankan sekali saat halaman loading (untuk kasus Edit)
+    // Jalankan sekali saat halaman loading
     document.addEventListener("DOMContentLoaded", function() {
         toggleFormula();
+
+        // [BARU] Logika Pencarian Tabel (Live Search)
+        document.getElementById('searchInput').addEventListener('keyup', function() {
+            let filterText = this.value.toLowerCase();
+            let rows = document.querySelectorAll('.var-row');
+
+            rows.forEach(function(row) {
+                // Ambil nilai teks dari kolom kode dan nama
+                let kode = row.querySelector('.var-kode').textContent.toLowerCase();
+                let nama = row.querySelector('.var-nama').textContent.toLowerCase();
+
+                // Periksa apakah teks yang dicari ada di dalam kode atau nama
+                if (kode.includes(filterText) || nama.includes(filterText)) {
+                    row.style.display = ''; // Tampilkan baris
+                } else {
+                    row.style.display = 'none'; // Sembunyikan baris
+                }
+            });
+        });
     });
     </script>
 @endsection
