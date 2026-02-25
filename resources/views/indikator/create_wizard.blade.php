@@ -126,16 +126,13 @@
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        // Variabel Global untuk menyimpan data variabel yang diambil
         let availableVariables = [];
 
         $(document).ready(function () {
 
-            // --- 1. SAAT LAM DIPILIH ---
             $('#selectLam').change(function () {
                 let lamId = $(this).val();
 
-                // Reset Tampilan
                 $('#groupCluster').addClass('d-none');
                 $('#groupForm').addClass('d-none');
                 $('#selectCluster').html('<option value="">-- Loading --</option>');
@@ -143,7 +140,6 @@
 
                 if (!lamId) return;
 
-                // A. AJAX Ambil Cluster
                 $.get('/api/get-clusters-by-lam/' + lamId, function (data) {
                     let options = '<option value="">-- Pilih Klaster --</option>';
                     if (data.clusters.length === 0) {
@@ -158,17 +154,14 @@
                     $('#groupCluster').removeClass('d-none');
                 });
 
-                // B. AJAX Ambil Variabel (Untuk Rumus Kuantitatif)
-                // Pastikan Anda sudah membuat Route API ini: /api/get-variables-by-lam/{lam_id}
                 $.get('/api/get-variables-by-lam/' + lamId, function (data) {
-                    availableVariables = data.variables; // Simpan ke global
-                    renderVariables(); // Tampilkan badge
+                    availableVariables = data.variables; 
+                    renderVariables(); 
                 }).fail(function () {
                     $('#variableList').html('<span class="text-danger">Gagal mengambil variabel.</span>');
                 });
             });
 
-            // --- 2. SAAT KLASTER DIPILIH ---
             $('#selectCluster').change(function () {
                 if ($(this).val()) {
                     $('#groupForm').removeClass('d-none');
@@ -177,7 +170,6 @@
                 }
             });
 
-            // --- 3. SAAT TIPE PENILAIAN BERUBAH ---
             $('#selectType').change(function () {
                 if ($(this).val() == 'QUANTITATIVE') {
                     $('#groupQuantitative').removeClass('d-none');
@@ -187,14 +179,12 @@
             });
         });
 
-        // --- FUNGSI TAMPILKAN DAFTAR VARIABEL ---
         function renderVariables() {
             let html = '';
             if (availableVariables.length === 0) {
                 html = '<span class="text-muted">Tidak ada variabel terdaftar untuk LAM ini.</span>';
             } else {
                 availableVariables.forEach(v => {
-                    // Saat diklik, panggil fungsi insertVar
                     html += `<span class="badge badge-success mr-2 mb-1 cursor-pointer" 
                                     style="cursor:pointer; font-size:90%;" 
                                     onclick="insertVar('${v.code}')" 
@@ -206,7 +196,6 @@
             $('#variableList').html(html);
         }
 
-        // --- FUNGSI INSERT VARIABEL KE TEXTAREA ---
         function insertVar(code) {
             let textarea = document.getElementById('formulaInput');
             let start = textarea.selectionStart;
@@ -215,10 +204,8 @@
             let before = text.substring(0, start);
             let after = text.substring(end, text.length);
 
-            // Sisipkan kode di posisi kursor
             textarea.value = (before + code + after);
 
-            // Kembalikan fokus ke textarea
             textarea.selectionStart = textarea.selectionEnd = start + code.length;
             textarea.focus();
         }
@@ -228,17 +215,15 @@
 
             if (select.value === 'MANUAL') {
                 manualInput.classList.remove('d-none');
-                manualInput.value = ''; // Kosongkan agar user isi sendiri
+                manualInput.value = ''; 
                 manualInput.focus();
             } else {
                 manualInput.classList.add('d-none');
-                manualInput.value = select.value; // Isi dengan nilai dari select (UMUM/SYARAT UNGGUL)
+                manualInput.value = select.value; 
             }
         }
 
-        // Inisialisasi saat halaman load
         $(document).ready(function () {
-            // Set default value untuk input hidden
             document.getElementById('manualClassification').value = document.getElementById('selectClassification').value;
         });
     </script>

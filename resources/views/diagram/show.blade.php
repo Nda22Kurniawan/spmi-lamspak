@@ -151,10 +151,9 @@
                 <tbody>
                     @foreach($labels as $index => $label)
                     @php
-                        $score = $scores[$index];         // Rata-rata
-                        $weighted = $weightedScores[$index]; // Skor Terbobot
+                        $score = $scores[$index];
+                        $weighted = $weightedScores[$index];
                         
-                        // Logika Predikat Visual
                         if ($score >= 3.5) {
                             $predikat = 'Sangat Baik';
                             $badge = 'success';
@@ -227,10 +226,9 @@
 <script>
     var ctx = document.getElementById("myRadarChart").getContext('2d');
     
-    // Data dari Controller
     var labels = {!! json_encode($labels) !!};
     var dataScores = {!! json_encode($scores) !!};
-    var maxScore = {{ $model->max_score ?? 4 }}; // Default 4 jika null
+    var maxScore = {{ $model->max_score ?? 4 }};
 
     var myRadarChart = new Chart(ctx, {
         type: 'radar',
@@ -267,7 +265,7 @@
                     backdropColor: 'transparent'
                 },
                 pointLabels: {
-                    fontSize: 11, // Ukuran font label biar muat
+                    fontSize: 11,
                     fontStyle: "bold",
                     fontColor: "#6e707e"
                 }

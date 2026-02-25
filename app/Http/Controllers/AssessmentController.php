@@ -23,15 +23,9 @@ class AssessmentController extends Controller
         $this->calculator = $calculator;
     }
 
-    // =========================================================================
-    // 1. HALAMAN DATA STATISTIK (Input Data Mentah)
-    // =========================================================================
     public function indexRawData(Request $request)
     {
-        // 1. Ambil ID Prodi (Bisa dari parameter URL atau Default User)
-        // Simulasi: Ambil dari request ?prodi_id=1 atau default prodi pertama
         $prodiId = $request->get('prodi_id');
-        // Jika null, ambil prodi user atau prodi pertama
         if (!$prodiId) {
             $firstProdi = Prodi::first();
             $prodiId = $firstProdi->id;
@@ -39,17 +33,13 @@ class AssessmentController extends Controller
 
         $prodi = Prodi::findOrFail($prodiId);
 
-        // --- TAMBAHKAN BARIS INI (Ambil Semua Prodi untuk Dropdown) ---
         $allProdis = Prodi::all();
-        // 2. Validasi LAM
         if (!$prodi->accreditation_model_id) {
             return redirect()->back()->with('error', 'Prodi ini belum disetting LAM-nya.');
         }
 
-        // 3. Ambil Variabel DKPS
         $variables = RawDataVariable::where('model_id', $prodi->accreditation_model_id)->get();
 
-        // 4. Ambil Data Existing (Tahun ini)
         $year = $request->get('year', date('Y'));
         $existingValues = ProdiRawValue::where('prodi_id', $prodiId)
             ->where('year', $year)
@@ -79,13 +69,8 @@ class AssessmentController extends Controller
 
         return back()->with('success', 'Data statistik berhasil disimpan.');
     }
-
-    // =========================================================================
-    // 2. HALAMAN ASESMEN (Lembar Penilaian) -- YANG MISSING TADI
-    // =========================================================================
     public function indexAssessment($model_id)
     {
-        // 1. Ambil Model Akreditasi (INFOKOM, SPAK, atau WISATA)
         $model = AccreditationModel::with(['clusters.indicators.rubrics'])->findOrFail($model_id);
 
         // 2. Cek Hak Akses Prodi (Validasi Sederhana)
@@ -120,7 +105,6 @@ class AssessmentController extends Controller
         return view('assessment.index', compact('model', 'scores', 'prodiId'));
     }
 
-    // Proses Simpan/Hitung Skor
     public function assess(Request $request)
     {
         $request->validate([
@@ -128,7 +112,7 @@ class AssessmentController extends Controller
             'indicator_id' => 'required|exists:indicators,id',
             'rubric_id'    => 'nullable|exists:indicator_rubrics,id',
             'proof_link'   => 'nullable|url',
-            'notes'        => 'nullable|string' // Sesuai nama kolom di DB
+            'notes'        => 'nullable|string'
         ]);
 
         $indicator = Indicator::findOrFail($request->indicator_id);
@@ -143,10 +127,8 @@ class AssessmentController extends Controller
             $selectedRubricId = $rubric->id;
         }
 
-        // Hitung Skor Akhir (Weighted Score)
         $weightedScore = $finalScore * ($indicator->weight ?? 0);
 
-        // Simpan ke kolom 'notes' yang sudah ada
         $score = AssessmentScore::updateOrCreate(
             [
                 'prodi_id'     => $request->prodi_id,
@@ -157,7 +139,7 @@ class AssessmentController extends Controller
                 'final_score'        => $finalScore,
                 'weighted_score'     => $weightedScore,
                 'proof_link'         => $request->proof_link,
-                'notes'              => $request->notes, // Menggunakan kolom notes
+                'notes'              => $request->notes,
                 'status'             => 'DRAFT'
             ]
         );
@@ -171,33 +153,23 @@ class AssessmentController extends Controller
             'total_overall_score' => number_format($totalOverall, 2),
         ]);
     }
-
-    // =========================================================================
-    // 3. HALAMAN LAPORAN (Report)
-    // =========================================================================
     public function report()
     {
-        // Contoh sederhana ambil semua skor
         $prodiId = request('prodi_id') ?? 1;
         $scores = AssessmentScore::with(['indicator.cluster', 'prodi'])
             ->where('prodi_id', $prodiId)
             ->get();
-
-        // Hitung rata-rata per klaster bisa dilakukan di sini
 
         return view('assessment.report', compact('scores'));
     }
 
     public function pilihProdi()
     {
-        // Jika user adalah Admin/LPM, tampilkan semua Prodi
-        // Jika user adalah Kaprodi, tampilkan prodi dia saja (sesuaikan logic ini nanti)
         $prodis = Prodi::with('accreditationModel')->get();
 
         return view('assessment.pilih_prodi', compact('prodis'));
     }
 
-    // B. Tampilkan Form Asesmen Spesifik Prodi
     public function formAsesmen($prodi_id)
     {
         $prodi = Prodi::findOrFail($prodi_id);
@@ -215,20 +187,18 @@ class AssessmentController extends Controller
 
         $year = request('year', date('Y'));
 
-        // --- PERBAIKAN 1: Update simpanan Weighted Score untuk Kuantitatif ---
         foreach ($model->clusters as $cluster) {
             foreach ($cluster->indicators as $indicator) {
                 if ($indicator->type === 'QUANTITATIVE') {
                     $scoreValue = $this->calculator->calculate($indicator, $prodi->id, $year);
 
-                    // Hitung Skor Akhir (Nilai x Bobot)
                     $weightedValue = $scoreValue * ($indicator->weight ?? 0);
 
                     AssessmentScore::updateOrCreate(
                         ['prodi_id' => $prodi->id, 'indicator_id' => $indicator->id],
                         [
                             'final_score' => $scoreValue,
-                            'weighted_score' => $weightedValue // Simpan ke kolom baru
+                            'weighted_score' => $weightedValue
                         ]
                     );
                 }
@@ -236,9 +206,6 @@ class AssessmentController extends Controller
         }
 
         $scores = AssessmentScore::where('prodi_id', $prodi->id)->get()->keyBy('indicator_id');
-
-        // --- PERBAIKAN 2: Sederhanakan Perhitungan Total Skor ---
-        // Karena kita sudah punya kolom weighted_score, kita tidak perlu JOIN atau DB::raw lagi
         $totalScore = AssessmentScore::where('prodi_id', $prodi->id)->sum('weighted_score');
 
         return view('assessment.index', [

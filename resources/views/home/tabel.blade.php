@@ -68,7 +68,6 @@
                                 @foreach($cluster->indicators as $indicator)
                                 @php
                                 $savedScore = $scores[$indicator->id] ?? null;
-                                // Ubah warna border kiri berdasarkan ketersediaan dokumen/skor
                                 $bgCard = ($savedScore && !empty($savedScore->proof_link)) ? 'border-success' : 'border-warning';
                                 $weight = $indicator->weight ?? 0;
                                 $weightedScore = $savedScore ? ($savedScore->final_score * $weight) : 0;
@@ -102,10 +101,8 @@
                                                 <div class="p-2 mb-2 rounded" style="background-color: #f1f3f5; font-size: 0.9rem;">
                                                     @if($indicator->type == 'QUALITATIVE')
                                                     @php
-                                                    // Cari rubrik yang ID-nya cocok dengan selected_rubric_id yang tersimpan di AssessmentScore
                                                     $selectedRubric = null;
                                                     if($savedScore) {
-                                                    // Gunakan selected_rubric_id atau rubric_id tergantung nama kolom di database Anda
                                                     $rubricId = $savedScore->selected_rubric_id ?? $savedScore->rubric_id;
                                                     $selectedRubric = $indicator->rubrics->firstWhere('id', $rubricId);
                                                     }
@@ -186,16 +183,13 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $(document).ready(function() {
-        // Logika Fitur Pencarian
         $('#searchInput').on('keyup', function() {
             var value = $(this).val().toLowerCase();
 
-            // Saring setiap card indikator
             $('.indicator-item').filter(function() {
                 $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
             });
 
-            // Sembunyikan Header Klaster jika semua indikator kosong
             $('.cluster-card').each(function() {
                 var visibleIndicators = $(this).find('.indicator-item:visible').length;
                 if (visibleIndicators > 0) {

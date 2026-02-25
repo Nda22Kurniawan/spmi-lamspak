@@ -19,7 +19,6 @@ class AuthController extends Controller
 
     public function proses(Request $request)
     {
-        // 1. Validasi Input
         $request->validate([
             'email' => 'required|email',
             'password' => 'required'
@@ -27,15 +26,12 @@ class AuthController extends Controller
 
         $credentials = $request->only('email', 'password');
 
-        // 2. Proses Login Otomatis Laravel (lebih ringkas & aman)
-        // Attempt akan otomatis mencari user by email & hash check password
         if (Auth::attempt($credentials)) {
-            $request->session()->regenerate(); // Mencegah Session Fixation
+            $request->session()->regenerate();
 
-            return redirect()->intended('dashboard'); // Redirect ke dashboard atau halaman yang tadi mau diakses
+            return redirect()->intended('dashboard');
         }
 
-        // 3. Jika Gagal (Pesan Error Generik)
         return back()->with('pesan', '<div class="alert alert-danger alert-dismissible fade show" role="alert">
             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                 <span aria-hidden="true">&times;</span>

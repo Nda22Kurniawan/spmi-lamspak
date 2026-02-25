@@ -17,11 +17,10 @@ class IndikatorController extends Controller
     {
         $lams = AccreditationModel::all();
 
-        // Ambil lam_id dari request, atau default ke LAM pertama
         $selectedLamId = $request->get('lam_id', $lams->first()->id ?? null);
-        $search = $request->get('search'); // Ambil kata kunci pencarian
+        $search = $request->get('search'); 
 
-        $indicators = collect(); // Default kosong
+        $indicators = collect(); 
 
         if ($selectedLamId) {
             $query = Indicator::with('cluster')
@@ -29,22 +28,19 @@ class IndikatorController extends Controller
                     $q->where('model_id', $selectedLamId);
                 });
 
-            // Logika Pencarian
             if ($search) {
                 $query->where(function ($q) use ($search) {
-                    // PERBAIKAN: Tambahkan 'indicators.' di depan nama kolom
                     $q->where('indicators.code', 'like', "%{$search}%")
                         ->orWhere('indicators.description', 'like', "%{$search}%");
                 });
             }
 
-            // Sorting & Pagination
             $indicators = $query->join('assessment_clusters', 'indicators.cluster_id', '=', 'assessment_clusters.id')
-                ->orderBy('assessment_clusters.order_index', 'asc') // Urutkan Cluster dulu
-                ->orderBy('indicators.id', 'asc') // Lalu urutkan ID Indikator
-                ->select('indicators.*') // Penting agar ID tidak tertimpa ID cluster
-                ->paginate(10) // Tampilkan 10 data per halaman
-                ->appends(['lam_id' => $selectedLamId, 'search' => $search]); // Agar parameter tidak hilang saat pindah hal
+                ->orderBy('assessment_clusters.order_index', 'asc') 
+                ->orderBy('indicators.id', 'asc') 
+                ->select('indicators.*') 
+                ->paginate(10) 
+                ->appends(['lam_id' => $selectedLamId, 'search' => $search]);
         }
 
         return view('indikator.index', compact('lams', 'selectedLamId', 'indicators', 'search'));
@@ -60,11 +56,8 @@ class IndikatorController extends Controller
     {
         $indicator = Indicator::with('cluster.model')->findOrFail($id);
 
-        // Kita butuh data LAM dan Klaster untuk dropdown
-        // (Mirip logika di create_wizard, tapi kita set default selected-nya nanti di view)
         $lams = AccreditationModel::all();
 
-        // Kita juga butuh daftar Klaster milik LAM dari indikator ini agar dropdown klaster terisi
         $clusters = AssessmentCluster::where('model_id', $indicator->cluster->model_id)
             ->orderBy('order_index', 'asc')
             ->get();
@@ -72,7 +65,6 @@ class IndikatorController extends Controller
         return view('indikator.edit', compact('indicator', 'lams', 'clusters'));
     }
 
-    // 2. Simpan Perubahan (Update)
     public function update(Request $request, $id)
     {
         $request->validate([
@@ -81,7 +73,7 @@ class IndikatorController extends Controller
             'description'    => 'required|string',
             'type'           => 'required|in:QUALITATIVE,QUANTITATIVE',
             'weight'         => 'required|numeric|min:0',
-            'classification' => 'nullable|string|max:100', // Tambahkan validasi ini
+            'classification' => 'nullable|string|max:100', 
             'custom_formula' => 'nullable|string'
         ]);
 
@@ -99,16 +91,12 @@ class IndikatorController extends Controller
             ->with('success', 'Indikator berhasil diperbarui.');
     }
 
-    // 2. Hapus Indikator
     public function destroy($id)
     {
         $indicator = Indicator::findOrFail($id);
 
-        // Simpan LAM ID untuk redirect balik ke halaman yang sama
         $lamId = $indicator->cluster->model_id;
 
-        // Hapus (Score & Rubrik akan terhapus otomatis jika Anda set onCascadeDelete di migrasi)
-        // Jika tidak, Anda perlu manual: $indicator->rubrics()->delete(); $indicator->scores()->delete();
         $indicator->delete();
 
         return redirect()->route('indikator.index', ['lam_id' => $lamId])
@@ -224,7 +212,6 @@ class IndikatorController extends Controller
         <strong>Data Berhasil Ditambahkan</strong>
     </div>');
         return redirect()->route('indikator-' . $jenjang->kode);
-        // return redirect()->to('indikator/' . $jenjang->kode);
     }
 
     public function cekScore(Indikator $indikator)
@@ -287,12 +274,10 @@ class IndikatorController extends Controller
 
     public function createByLam()
     {
-        // Ambil semua Jenis LAM (INFOKOM, SPAK, WISATA, dll)
         $lams = AccreditationModel::all();
         return view('indikator.create_wizard', compact('lams'));
     }
 
-    // API untuk mengambil Klaster berdasarkan LAM ID (Bukan Prodi ID)
     public function getClustersByLam($lam_id)
     {
         $lam = AccreditationModel::with('clusters')->find($lam_id);
@@ -306,7 +291,6 @@ class IndikatorController extends Controller
         ]);
     }
 
-    // API untuk mengambil Klaster berdasarkan Prodi yang dipilih
     public function getClustersByProdi($prodi_id)
     {
         $prodi = Prodi::with('accreditationModel.clusters')->find($prodi_id);
@@ -323,7 +307,6 @@ class IndikatorController extends Controller
 
     public function getVariablesByLam($lam_id)
     {
-        // Mengambil variabel yang terhubung dengan model_id (LAM)
         $variables = \App\Models\RawDataVariable::where('model_id', $lam_id)
             ->orderBy('code', 'asc')
             ->get(['code', 'name']);
@@ -341,7 +324,7 @@ class IndikatorController extends Controller
             'description'    => 'required|string',
             'type'           => 'required|in:QUALITATIVE,QUANTITATIVE',
             'weight'         => 'required|numeric|min:0',
-            'classification' => 'nullable|string|max:100', // Validasi klasifikasi
+            'classification' => 'nullable|string|max:100', 
             'custom_formula' => 'nullable|string'
         ]);
 
@@ -353,8 +336,6 @@ class IndikatorController extends Controller
 
         Indicator::create($data);
 
-        // Redirect Balik ke Index (List)
-        // Kita ambil Model ID dari cluster agar filter LAM-nya tetap aktif saat redirect
         $lamId = AssessmentCluster::find($request->cluster_id)->model_id;
 
         return redirect()->route('indikator.index', ['lam_id' => $lamId])

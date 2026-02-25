@@ -194,29 +194,23 @@
 <script>
     $(document).ready(function() {
         
-        // --- [BARU] Logika Fitur Pencarian ---
         $('#searchInput').on('keyup', function() {
             var value = $(this).val().toLowerCase();
 
-            // Saring setiap card indikator
             $('.indicator-item').filter(function() {
-                // Tampilkan jika teks (kode/deskripsi) cocok, sembunyikan jika tidak
                 $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
             });
 
-            // Sembunyikan Header Klaster jika semua indikator di dalamnya tidak cocok dengan pencarian
             $('.cluster-card').each(function() {
-                // Hitung berapa indikator yang masih terlihat di dalam klaster ini
                 var visibleIndicators = $(this).find('.indicator-item:visible').length;
                 
                 if(visibleIndicators > 0) {
-                    $(this).show(); // Tampilkan klaster
+                    $(this).show(); 
                 } else {
-                    $(this).hide(); // Sembunyikan klaster
+                    $(this).hide(); 
                 }
             });
         });
-        // -------------------------------------
 
         $('.btn-save').click(function() {
             var btn = $(this);

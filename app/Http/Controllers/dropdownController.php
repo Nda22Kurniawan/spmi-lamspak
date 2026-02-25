@@ -16,7 +16,6 @@ use Illuminate\Http\Request;
 class dropdownController extends Controller
 {
 
-    //Dropdown Multiple
     public function getJen(Jenjang $jenjang)
     {
         echo "<option value=''>=== SILAHKAN PILIH JENJANG STUDI === </option>";
@@ -103,7 +102,6 @@ class dropdownController extends Controller
 
     }
 
-    // Untuk Tambah DropDown Tidak Multiple #FormEdit
     public function getL1ne(Request $request)
     {
         $id = $request->id;
@@ -155,7 +153,6 @@ class dropdownController extends Controller
 
     }
 
-    // Untuk Tambah DropDown Tidak Multiple #FormCari
     public function getjn(Jenjang $j)
     {
         echo "<option value=''> === Pilih Jenjang Dahulu === </option>";
@@ -216,7 +213,6 @@ class dropdownController extends Controller
 
     }
 
-    // Untuk Tambah DropDown Tidak Multiple #FormEdit Level
     public function getjnu(Jenjang $j)
     {
         echo "<option value=''> === Pilih Jenjang Dahulu === </option>";

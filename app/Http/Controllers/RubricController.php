@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Indicator;
-use App\Models\AccreditationModel; // Model LAM Anda
+use App\Models\AccreditationModel; 
 use App\Models\IndicatorRubric;
 use Illuminate\Http\Request;
 
@@ -11,27 +11,20 @@ class RubricController extends Controller
 {
     public function index(Request $request)
     {
-        // 1. Ambil Semua Data LAM (AccreditationModel)
         $lams = AccreditationModel::all();
 
-        // 2. Ambil ID LAM yang dipilih dari URL, atau default ke LAM pertama jika kosong
         $selectedLamId = $request->get('lam_id', $lams->first()->id ?? null);
 
-        // 3. Query Utama: Indikator Tipe KUALITATIF (yang butuh rubrik manual)
-        // Kita Eager Load 'rubrics' agar bisa ditampilkan nested
         $query = Indicator::with(['rubrics' => function($q) {
             $q->orderBy('score_value', 'desc'); // Urutkan skor 4, 3, 2, 1, 0
         }])->where('type', 'QUALITATIVE');
 
-        // 4. Terapkan Filter LAM (Via Relasi Cluster)
-        // Logika: Indikator -> punya Cluster -> punya model_id (LAM)
         if ($selectedLamId) {
             $query->whereHas('cluster', function ($q) use ($selectedLamId) {
                 $q->where('model_id', $selectedLamId);
             });
         }
 
-        // 5. Pagination & Appends (Agar filter tidak hilang saat ganti halaman)
         $indicators = $query->paginate(10)->appends(['lam_id' => $selectedLamId]);
 
         return view('rubrics.index', compact('indicators', 'lams', 'selectedLamId'));

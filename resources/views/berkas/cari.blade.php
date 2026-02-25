@@ -50,17 +50,14 @@
 @section('script')
     <script>
         $(document).ready(function() {
-            // Initialize Select2
             $('#jen, #pro, #l1, #l2, #l3, #l4').select2();
 
-            // Set up AJAX headers for CSRF token
             $.ajaxSetup({
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
 
-            // Load Jenjang options
             $.ajax({
                 type: 'POST',
                 url: '{{ route('getJen') }}',
@@ -70,7 +67,6 @@
                 }
             });
 
-            // Event listener for Jenjang change
             $("#jen").change(function() {
                 var jenjang_id = $(this).val();
                 $.ajax({
@@ -84,7 +80,6 @@
                 });
             });
 
-            // Event listener for Prodi change
             $("#pro").change(function() {
                 var jenjang_id = $("#jen").val();
                 $.ajax({
@@ -98,7 +93,6 @@
                 });
             });
 
-            // Event listener for Level 1 change
             $("#l1").change(function() {
                 var l1_id = $(this).val();
                 $.ajax({
@@ -112,7 +106,6 @@
                 });
             });
 
-            // Event listener for Level 2 change
             $("#l2").change(function() {
                 var l2_id = $(this).val();
                 $.ajax({
@@ -126,7 +119,6 @@
                 });
             });
 
-            // Event listener for Level 3 change
             $("#l3").change(function() {
                 var l3_id = $(this).val();
                 $.ajax({
