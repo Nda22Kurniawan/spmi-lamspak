@@ -127,12 +127,11 @@ class PengaturanController extends Controller
         return view('pengaturan.create_lam');
     }
 
-    // 2. Proses Simpan LAM Baru
     public function storeLam(Request $request)
     {
         $request->validate([
             'name' => 'required|string|max:50|unique:accreditation_models,name',
-            'max_score' => 'required|integer|min:1|max:100', // Biasanya 4
+            'max_score' => 'required|integer|min:1|max:100',
         ]);
 
         AccreditationModel::create([
@@ -140,7 +139,6 @@ class PengaturanController extends Controller
             'max_score' => $request->max_score
         ]);
 
-        // Redirect kembali ke halaman Mapping agar bisa langsung dipakai
         return redirect()->route('pengaturan.lam')
             ->with('success', 'Data"' . $request->name . '" berhasil ditambahkan.');
     }
@@ -151,11 +149,9 @@ class PengaturanController extends Controller
         return view('pengaturan.edit_lam', compact('lam'));
     }
 
-    // 4. Proses Update LAM
     public function updateLam(Request $request, $id)
     {
         $request->validate([
-            // Validasi nama unique, kecuali untuk ID yang sedang diedit ini
             'name' => 'required|string|max:50|unique:accreditation_models,name,' . $id,
             'max_score' => 'required|integer|min:1|max:100',
         ]);
@@ -172,26 +168,22 @@ class PengaturanController extends Controller
 
     public function mappingLam()
     {
-        // Ambil semua prodi beserta model akreditasi yang sedang dipakai
         $prodis = Prodi::with('accreditationModel')->get();
         
-        // Ambil daftar pilihan LAM (Infokom, SPAK, dll)
         $models = AccreditationModel::all();
 
         return view('pengaturan.mapping_lam', compact('prodis', 'models'));
     }
 
-    // 2. Proses Simpan Perubahan
     public function updateMappingLam(Request $request)
     {
         $request->validate([
             'prodi_id' => 'required|exists:prodis,id',
-            'model_id' => 'nullable|exists:accreditation_models,id' // Nullable jika ingin reset
+            'model_id' => 'nullable|exists:accreditation_models,id' 
         ]);
 
         $prodi = Prodi::findOrFail($request->prodi_id);
         
-        // Update kolom accreditation_model_id
         $prodi->accreditation_model_id = $request->model_id;
         $prodi->save();
 

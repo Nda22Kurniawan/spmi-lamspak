@@ -46,7 +46,6 @@ class AdminController extends Controller
 
     public function tambahTimAkreditasi()
     {
-        // Tim Akreditasi terikat dengan Prodi, jadi kita butuh data Prodi
         return view('users.tambah.tim_akreditasi', [
             'prodi' => Prodi::all(),
         ]);

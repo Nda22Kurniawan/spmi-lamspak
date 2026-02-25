@@ -16,7 +16,6 @@ class ElementController extends Controller
         $kode = basename($request->path());
         $prodi = Prodi::where('kode', $kode)->first();
 
-        // Fetch elements and sort by l1, l2, l3
         $element = Element::where('prodi_id', $prodi->id)
             ->orderBy('l1_id')
             ->orderBy('l2_id')
@@ -100,7 +99,6 @@ class ElementController extends Controller
                     'score_berkas' => 0,
                     'score_hitung' => 0,
                     'count_berkas' => 0,
-                    // Remove 'indikator_id' if level 4 is filled
                 ];
             }
         } else {
@@ -158,7 +156,7 @@ class ElementController extends Controller
             'l4_id' => $element->l4_id,
             'file_name' => $fileName,
             'file' => $fileLink,
-            'dec' => $dec ?? '', // Provide a default value if 'dec' is null
+            'dec' => $dec ?? '',
             'score' => $score,
         ]);
 

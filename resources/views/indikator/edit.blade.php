@@ -155,24 +155,19 @@
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        // Variabel Global untuk menyimpan data variabel rumus
         let availableVariables = [];
 
         $(document).ready(function () {
 
-            // --- 1. INISIALISASI (Untuk Halaman Edit) ---
-            // Jika halaman edit dibuka, langsung load variabel berdasarkan LAM yang ada
             let initialLamId = $('#selectLam').val() || $('#lamIdHidden').val();
             if (initialLamId) {
                 loadClusters(initialLamId, "{{ $indicator->cluster_id ?? '' }}");
                 loadVariables(initialLamId);
             }
 
-            // --- 2. EVENT: SAAT LAM DIPILIH ---
             $('#selectLam').change(function () {
                 let lamId = $(this).val();
 
-                // Reset Tampilan
                 $('#groupCluster').addClass('d-none');
                 $('#groupForm').addClass('d-none');
                 $('#selectCluster').html('<option value="">-- Loading --</option>');
@@ -184,7 +179,6 @@
                 loadVariables(lamId);
             });
 
-            // --- 3. EVENT: SAAT KLASTER DIPILIH ---
             $('#selectCluster').change(function () {
                 if ($(this).val()) {
                     $('#groupForm').removeClass('d-none');
@@ -193,7 +187,6 @@
                 }
             });
 
-            // --- 4. EVENT: SAAT TIPE PENILAIAN BERUBAH ---
             $('#selectType').change(function () {
                 if ($(this).val() == 'QUANTITATIVE') {
                     $('#groupQuantitative').removeClass('d-none');
@@ -203,7 +196,6 @@
             });
         });
 
-        // --- FUNGSI: LOAD KLASTER VIA AJAX ---
         function loadClusters(lamId, selectedClusterId = '') {
             $.get('/api/get-clusters-by-lam/' + lamId, function (data) {
                 let options = '<option value="">-- Pilih Klaster --</option>';
@@ -215,14 +207,11 @@
                 $('#selectCluster').html(options);
                 $('#groupCluster').removeClass('d-none');
 
-                // Jika dalam mode edit, munculkan form detail
                 if (selectedClusterId) $('#groupForm').removeClass('d-none');
             });
         }
 
-        // --- FUNGSI: LOAD VARIABEL RUMUS VIA AJAX ---
         function loadVariables(lamId) {
-            // Pastikan route ini ada di controller (lihat bagian ke-2 di bawah)
             $.get('/api/get-variables-by-lam/' + lamId, function (data) {
                 availableVariables = data.variables;
                 renderVariables();
@@ -231,7 +220,6 @@
             });
         }
 
-        // --- FUNGSI: RENDER BADGE VARIABEL ---
         function renderVariables() {
             let html = '';
             if (availableVariables.length === 0) {
@@ -249,7 +237,6 @@
             $('#variableList').html(html);
         }
 
-        // --- FUNGSI: INSERT VARIABEL KE POSISI KURSOR ---
         function insertVar(code) {
             let textarea = document.getElementById('formulaInput');
             let start = textarea.selectionStart;
@@ -260,7 +247,6 @@
             textarea.focus();
         }
 
-        // --- FUNGSI: TOGGLE KLASIFIKASI MANUAL ---
         function toggleManualClassification(select) {
             let manualInput = document.getElementById('manualClassification');
             if (select.value === 'MANUAL') {

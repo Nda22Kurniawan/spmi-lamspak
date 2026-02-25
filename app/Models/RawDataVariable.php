@@ -8,7 +8,6 @@ class RawDataVariable extends Model
 {
     protected $guarded = ['id'];
 
-    // Variable ini dipakai oleh indikator mana saja?
     public function indicators()
     {
         return $this->belongsToMany(Indicator::class, 'indicator_variables', 'variable_id', 'indicator_id');
@@ -20,6 +19,6 @@ class RawDataVariable extends Model
         'name',
         'description',
         'type',
-        'calculation_formula' // <--- Tambahkan ini
+        'calculation_formula'
     ];
 }

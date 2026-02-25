@@ -52,7 +52,6 @@
             const password = document.querySelector('#exampleInputPassword');
 
             togglePassword.addEventListener('click', function () {
-                // Toggle tipe input: password menjadi text, dan sebaliknya
                 const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
                 password.setAttribute('type', type);
 

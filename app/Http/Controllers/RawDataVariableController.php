@@ -16,24 +16,19 @@ class RawDataVariableController extends Controller
     {
         $lams = AccreditationModel::orderBy('name', 'asc')->get();
 
-        // Ambil LAM yang sedang dipilih (Filter), default ke yang pertama
         $selectedLamId = $request->get('lam_id', $lams->first()->id ?? null);
 
-        // Ambil Data Variabel berdasarkan LAM
         $variables = [];
         if ($selectedLamId) {
             $variables = RawDataVariable::where('model_id', $selectedLamId)
-                ->orderBy('created_at', 'desc') // Data terbaru di atas
+                ->orderBy('created_at', 'desc') 
                 ->get();
         }
 
-        // LOGIKA EDIT: Cek apakah user sedang mengklik tombol Edit?
         $editVariable = null;
         if ($request->has('edit_id')) {
             $editVariable = RawDataVariable::find($request->edit_id);
 
-            // Jika sedang edit, paksa selectedLamId pindah ke LAM milik variabel tersebut
-            // Ini mencegah tampilan error jika user edit variabel dari tab LAM yang salah
             if ($editVariable) {
                 $selectedLamId = $editVariable->model_id;
             }
@@ -49,7 +44,6 @@ class RawDataVariableController extends Controller
     {
         $request->validate([
             'model_id' => 'required|exists:accreditation_models,id',
-            // PERBAIKAN VALIDASI: Unik hanya jika dalam model_id (LAM) yang sama
             'code' => [
                 'required',
                 'alpha_dash',
@@ -75,7 +69,6 @@ class RawDataVariableController extends Controller
 
         $request->validate([
             'model_id' => 'required|exists:accreditation_models,id',
-            // PERBAIKAN VALIDASI UPDATE: Unik di LAM sama, tapi abaikan ID diri sendiri
             'code' => [
                 'required',
                 'alpha_dash',
@@ -101,11 +94,10 @@ class RawDataVariableController extends Controller
     public function destroy($id)
     {
         $variable = RawDataVariable::findOrFail($id);
-        $lamId = $variable->model_id; // Simpan ID LAM dulu sebelum dihapus
+        $lamId = $variable->model_id; 
 
         $variable->delete();
 
-        // Redirect kembali ke Tab LAM yang sama
         return redirect()->route('variable.index', ['lam_id' => $lamId])
             ->with('success', 'Variabel berhasil dihapus.');
     }

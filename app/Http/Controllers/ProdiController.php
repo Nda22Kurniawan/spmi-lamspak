@@ -16,7 +16,6 @@ class ProdiController extends Controller
         $kode = basename($request->path());
         $prodi = Prodi::where('kode', $kode)->first();
 
-        // Filter elemen yang tidak memiliki l4_id atau l4_id = 0
         $element = Element::where('prodi_id', $prodi->id)->where('l4_id', 0);
         $rendah = Element::where('prodi_id', $prodi->id)->where('score_hitung', '<', 0.5)->get();
 

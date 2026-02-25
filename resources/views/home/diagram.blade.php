@@ -70,7 +70,7 @@
                 pointHoverBorderColor: "rgba(78, 115, 223, 1)",
             }, {
                 label: 'Target Maksimal',
-                data: {!! json_encode($maxScores) !!}, // Garis 4.0
+                data: {!! json_encode($maxScores) !!},
                 fill: false,
                 borderColor: "rgba(200, 200, 200, 0.5)",
                 pointRadius: 0,

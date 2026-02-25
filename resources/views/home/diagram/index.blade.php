@@ -33,7 +33,6 @@
 <script>
     const ctx = document.getElementById('barChart').getContext('2d');
 
-    // Mengambil data yang dikirim dari method pencapaian() di Controller
     const labelsProdi = {!! json_encode($daftarProdi ?? []) !!};
     const dataSkor = {!! json_encode($skorTotalProdi ?? []) !!};
     const linksProdi = {!! json_encode($linkProdi ?? []) !!};
@@ -60,7 +59,7 @@
                     'rgb(153, 102, 255)'
                 ],
                 borderWidth: 1,
-                borderRadius: 4 // Membuat sudut atas batang sedikit melengkung
+                borderRadius: 4 
             }]
         },
         options: {
@@ -68,25 +67,22 @@
             scales: {
                 y: {
                     beginAtZero: true,
-                    // max: 4.0, // Hilangkan komentar jika ingin mematok nilai maksimal sumbu Y
                 }
             },
             plugins: {
                 legend: {
-                    display: false // Disembunyikan karena label di bawah sudah mewakili nama Prodi
+                    display: false 
                 }
             },
-            // Fitur klik bawaan Chart.js (Menggantikan fungsi clickableScale yang rumit)
             onClick: (e, activeElements) => {
                 if (activeElements.length > 0) {
                     const dataIndex = activeElements[0].index;
                     const url = linksProdi[dataIndex];
                     if(url) {
-                        window.location.href = url; // Pindah ke halaman detail
+                        window.location.href = url; 
                     }
                 }
             },
-            // Mengubah kursor panah menjadi bentuk tangan (pointer) saat menyorot batang grafik
             onHover: (event, chartElement) => {
                 event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
             }

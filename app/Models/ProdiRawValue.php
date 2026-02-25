@@ -8,7 +8,6 @@ class ProdiRawValue extends Model
 {
     protected $guarded = ['id'];
 
-    // Pastikan nama model Prodi Anda sesuai (misal: Prodi atau ProgramStudy)
     public function prodi()
     {
         return $this->belongsTo(Prodi::class, 'prodi_id');

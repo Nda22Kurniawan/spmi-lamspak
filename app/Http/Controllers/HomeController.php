@@ -100,8 +100,6 @@ class HomeController extends Controller
             'SI' => Element::where('prodi_id', 2)->get()->sum('score_hitung'),
             'IK' => Element::where('prodi_id', 3)->get()->sum('score_hitung'),
             'PW' => Element::where('prodi_id', 4)->get()->sum('score_hitung'),
-            // 'TRKJ' => Element::where('prodi_id', 5)->get()->sum('score_hitung'),
-            // 'MI' => Element::where('prodi_id', 6)->get()->sum('score_hitung'),
         ];
         return view('home.diagram.index', [
             'ass' => $ass,
