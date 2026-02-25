@@ -72,8 +72,6 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {{-- Cek apakah $indicators kosong (bisa karena search tidak ketemu atau memang belum ada data)
-                            --}}
                             @if($indicators->count() > 0)
                                 @foreach($indicators as $indicator)
                                     <tr>
@@ -95,15 +93,15 @@
                                                 class="btn btn-sm btn-warning mr-1" title="Edit">
                                                 <i class="fas fa-edit"></i>
                                             </a>
-                                            <form action="{{ route('indikator.destroy', $indicator->id) }}" method="POST"
-                                                class="d-inline"
-                                                onsubmit="return confirm('Yakin ingin menghapus Indikator {{ $indicator->code }}? Data nilai yang terkait juga akan hilang!');">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-danger" title="Hapus">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </form>
+                                            
+                                            <button type="button" class="btn btn-sm btn-danger btn-delete" 
+                                                    data-id="{{ $indicator->id }}" 
+                                                    data-code="{{ $indicator->code }}"
+                                                    data-toggle="modal" 
+                                                    data-target="#deleteModal" 
+                                                    title="Hapus">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
                                         </td>
                                     </tr>
                                 @endforeach
@@ -120,7 +118,6 @@
                 </div>
 
                 <div class="d-flex justify-content-end mt-3">
-                    {{-- Pastikan AppServiceProvider menggunakan Paginator::useBootstrap() --}}
                     @if($indicators instanceof \Illuminate\Pagination\LengthAwarePaginator)
                         {{ $indicators->links() }}
                     @endif
@@ -134,4 +131,45 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <form id="deleteForm" action="" method="POST">
+            @csrf
+            @method('DELETE')
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header border-bottom-0 pb-0">
+                        <h5 class="modal-title font-weight-bold text-danger" id="deleteModalLabel">Yakin ingin menghapus?</h5>
+                        <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">×</span>
+                        </button>
+                    </div>
+                    <div class="modal-body py-4">
+                        Yakin ingin menghapus Indikator <strong id="deleteIndicatorCode" class="text-dark"></strong>?<br>
+                        <small class="text-muted text-danger font-weight-bold">Perhatian: Data nilai yang terkait juga akan ikut terhapus secara permanen!</small>
+                    </div>
+                    <div class="modal-footer bg-light border-top-0">
+                        <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                        <button class="btn btn-danger" type="submit">Hapus</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+@endsection
+
+@section('script')
+<script>
+    $(document).ready(function() {
+        $('.btn-delete').on('click', function() {
+            var id = $(this).data('id');
+            var code = $(this).data('code');
+            
+            var url = "{{ url('/indikator') }}/" + id;
+            
+            $('#deleteForm').attr('action', url);
+            $('#deleteIndicatorCode').text(code);
+        });
+    });
+</script>
 @endsection

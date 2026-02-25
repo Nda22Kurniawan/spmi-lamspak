@@ -6,7 +6,6 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
     <title>Smart Sistem Penjamin Mutu Internal - {{ $title ?? 'Home' }}</title>
-    <meta name="author" content="Ricky Martin Ginting">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <link rel="apple-touch-icon" sizes="57x57" href="{{ asset('favicon/apple-icon-57x57.png') }}">

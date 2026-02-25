@@ -7,10 +7,20 @@
         <h1 class="h3 mb-4 text-gray-800">Master Data: Rubrik Penilaian</h1>
 
         @if(session('success'))
-            <div class="alert alert-success">{{ session('success') }}</div>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ session('success') }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
         @endif
         @if(session('error'))
-            <div class="alert alert-danger">{{ session('error') }}</div>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ session('error') }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
         @endif
 
         <div class="card shadow mb-4">
@@ -56,8 +66,6 @@
 
                                 {{-- 1. HITUNG NILAI MAKSIMAL UNTUK INDIKATOR INI --}}
                                 @php
-                                    // Cari angka terbesar di antara rubrik-rubrik milik indikator ini
-                                    // Jika tidak ada rubrik, default ke 4 agar tidak error division by zero
                                     $maxScore = $indicator->rubrics->max('score_value') ?? 4;
                                 @endphp
 
@@ -66,8 +74,7 @@
                                     <td colspan="3" class="font-weight-bold text-primary">
                                         <i class="fas fa-tag mr-2"></i>
                                         {{ $indicator->code }} - {{ $indicator->description }}
-                                        <small
-                                            class="text-muted ml-2">({{ $indicator->cluster->name ?? 'Klaster Umum' }})</small>
+                                        <small class="text-muted ml-2">({{ $indicator->cluster->name ?? 'Klaster Umum' }})</small>
                                     </td>
                                 </tr>
 
@@ -79,17 +86,6 @@
                                             {{-- 2. LOGIKA WARNA DINAMIS --}}
                                             @php
                                                 $badgeClass = 'badge-danger'; // Default Merah
-
-                                                // Hitung Persentase: (Nilai Rubrik / Nilai Maksimal Indikator)
-                                                // Contoh Skala 0-2:
-                                                // Nilai 2 -> 2/2 = 100% -> Hijau
-                                                // Nilai 1 -> 1/2 = 50%  -> Kuning
-                                                // Nilai 0 -> 0/2 = 0%   -> Merah
-
-                                                // Contoh Skala 0-4:
-                                                // Nilai 4 -> 100% -> Hijau
-                                                // Nilai 3 -> 75%  -> Hijau
-                                                // Nilai 2 -> 50%  -> Kuning
 
                                                 if ($maxScore > 0) {
                                                     $percentage = $rubric->score_value / $maxScore;
@@ -105,6 +101,7 @@
                                             <span class="badge {{ $badgeClass }} px-3 py-2" style="font-size:14px">
                                                 {{ $rubric->score_value }}
                                             </span>
+
                                         </td>
 
                                         <td class="align-middle">
@@ -117,13 +114,14 @@
                                                 <i class="fas fa-edit"></i>
                                             </button>
 
-                                            <form action="{{ route('rubrics.destroy', $rubric->id) }}" method="POST"
-                                                class="d-inline" onsubmit="return confirm('Yakin hapus?');">
-                                                @csrf @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-danger">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </form>
+                                            <button type="button" class="btn btn-sm btn-danger btn-delete-rubric" 
+                                                    data-id="{{ $rubric->id }}" 
+                                                    data-score="{{ $rubric->score_value }}"
+                                                    data-toggle="modal" 
+                                                    data-target="#deleteModal" 
+                                                    title="Hapus">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
                                         </td>
                                     </tr>
 
@@ -160,4 +158,45 @@
     {{-- MODAL CREATE --}}
     @include('rubrics.partials.modal_create', ['all_indicators' => $indicators])
 
+    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <form id="deleteForm" action="" method="POST">
+            @csrf
+            @method('DELETE')
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header border-bottom-0 pb-0">
+                        <h5 class="modal-title font-weight-bold text-danger" id="deleteModalLabel">Yakin ingin menghapus?</h5>
+                        <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">×</span>
+                        </button>
+                    </div>
+                    <div class="modal-body py-4">
+                        Rubrik dengan nilai Skor <strong id="deleteRubricScore" class="text-dark"></strong> akan dihapus permanen.<br>
+                        <small class="text-muted">Tindakan ini tidak dapat dibatalkan.</small>
+                    </div>
+                    <div class="modal-footer bg-light border-top-0">
+                        <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                        <button class="btn btn-danger" type="submit">Hapus</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+@endsection
+
+@section('script')
+<script>
+    $(document).ready(function() {
+        $('.btn-delete-rubric').on('click', function() {
+            var id = $(this).data('id');
+            var score = $(this).data('score');
+            
+            var url = "{{ url('/rubrics') }}/" + id;
+            
+            $('#deleteForm').attr('action', url);
+            $('#deleteRubricScore').text(score);
+        });
+    });
+</script>
 @endsection

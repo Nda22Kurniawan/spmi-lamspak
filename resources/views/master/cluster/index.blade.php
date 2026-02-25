@@ -5,10 +5,20 @@
         <h1 class="h3 mb-4 text-gray-800">Master Data: Klaster / Elemen Penilaian</h1>
 
         @if(session('success'))
-            <div class="alert alert-success">{{ session('success') }}</div>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ session('success') }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
         @endif
         @if(session('error'))
-            <div class="alert alert-danger">{{ session('error') }}</div>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ session('error') }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
         @endif
 
         <div class="card shadow mb-4">
@@ -63,14 +73,15 @@
                                             title="Edit">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        <form action="{{ route('cluster.destroy', $cluster->id) }}" method="POST"
-                                            class="d-inline" onsubmit="return confirm('Yakin hapus?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-danger" title="Hapus">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
+                                        
+                                        <button class="btn btn-sm btn-danger btn-delete" 
+                                                data-id="{{ $cluster->id }}" 
+                                                data-name="{{ $cluster->name }}"
+                                                data-toggle="modal" 
+                                                data-target="#deleteModal" 
+                                                title="Hapus">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
                                     </td>
                                 </tr>
                             @empty
@@ -86,4 +97,46 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <form id="deleteForm" action="" method="POST">
+            @csrf
+            @method('DELETE')
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header border-bottom-0 pb-0">
+                        <h5 class="modal-title font-weight-bold text-danger" id="deleteModalLabel">Yakin ingin menghapus?</h5>
+                        <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">×</span>
+                        </button>
+                    </div>
+                    <div class="modal-body py-4">
+                        Data klaster <strong id="deleteClusterName" class="text-dark"></strong> akan dihapus permanen.<br>
+                        <small class="text-muted">Tindakan ini tidak dapat dibatalkan.</small>
+                    </div>
+                    <div class="modal-footer bg-light border-top-0">
+                        <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                        <button class="btn btn-danger" type="submit">Hapus</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+@endsection
+
+@section('script')
+<script>
+    $(document).ready(function() {
+        $('.btn-delete').on('click', function() {
+            var id = $(this).data('id');
+            var name = $(this).data('name');
+            
+            var url = "{{ url('/master/klaster/hapus') }}/" + id;
+            
+            $('#deleteForm').attr('action', url);
+            
+            $('#deleteClusterName').text('"' + name + '"');
+        });
+    });
+</script>
 @endsection

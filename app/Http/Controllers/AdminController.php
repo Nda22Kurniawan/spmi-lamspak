@@ -104,6 +104,45 @@ class AdminController extends Controller
         ]);
     }
 
+    public function editProfile()
+    {
+        return view('users.profile', [
+            'user' => auth()->user()
+        ]);
+    }
+
+    // [BARU] Memproses update data Profile
+    public function updateProfile(Request $request)
+    {
+        $user = User::find(auth()->id());
+
+        // Validasi input
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            // Password opsional, jadi hanya diupdate jika diisi
+            'password' => 'nullable|min:6'
+        ]);
+
+        $user->name = $request->name;
+        $user->email = $request->email;
+
+        if ($request->filled('password')) {
+            $user->password = Hash::make($request->password);
+        }
+
+        $user->save();
+
+        session()->flash('pesan', '<div class="alert alert-success alert-dismissible fade show" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            <strong>Profil Berhasil Diperbarui!</strong>
+        </div>');
+
+        return redirect()->back();
+    }
+
     public function put(User $user, Request $request)
     {
         $att = [

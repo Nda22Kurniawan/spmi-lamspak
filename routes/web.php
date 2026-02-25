@@ -206,6 +206,8 @@ Route::middleware(['auth', 'cekRole:Admin,Ketua LPM,Ketua Program Studi,Sekretar
     Route::delete('users/hapus/{user}', [AdminController::class, 'hapus']);
     Route::get('users/edit/{user}', [AdminController::class, 'edit']);
     Route::put('users/put/{user}', [AdminController::class, 'put']);
+    Route::get('/profile', [AdminController::class, 'editProfile'])->name('profile.edit');
+    Route::put('/profile', [AdminController::class, 'updateProfile'])->name('profile.update');
 
     Route::get('target', [TargetController::class, 'index'])->name('target');
     Route::get('target/{prodi:kode}', [TargetController::class, 'detail']);
