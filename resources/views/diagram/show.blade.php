@@ -1,14 +1,119 @@
 @extends('template.BaseView')
 
 @section('content')
+
+<style>
+    @media print {
+        body {
+            background-color: #fff !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        
+        #accordionSidebar,          
+        .topbar,                    
+        footer.sticky-footer,       
+        .btn,                       
+        a.btn,                      
+        #sidebarToggleTop,
+        .scroll-to-top {
+            display: none !important;
+        }
+
+        #content-wrapper, #content, .container-fluid {
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            box-shadow: none !important;
+        }
+
+        .card {
+            border: none !important;
+            box-shadow: none !important;
+        }
+        .card-header {
+            background-color: #fff !important;
+            border-bottom: 2px solid #000 !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+        }
+        
+        .border-left-primary, .border-left-success, .border-left-warning {
+            border-left: none !important;
+            border: 1px solid #ddd !important;
+        }
+
+        .row {
+            display: flex !important;
+            flex-wrap: wrap !important;
+        }
+        .col-xl-3, .col-md-6 {
+            flex: 0 0 33.333333% !important;
+            max-width: 33.333333% !important;
+        }
+        .col-lg-8 {
+            flex: 0 0 60% !important; 
+            max-width: 60% !important;
+        }
+        .col-lg-4 {
+            flex: 0 0 40% !important; 
+            max-width: 40% !important;
+        }
+
+        .chart-area {
+            height: 350px !important; 
+        }
+        canvas {
+            max-width: 100% !important;
+            height: auto !important;
+        }
+
+        table {
+            border-collapse: collapse !important;
+        }
+        .table-bordered th, .table-bordered td {
+            border: 1px solid #000 !important;
+        }
+        .thead-dark th, .bg-primary, .bg-gray-200 {
+            background-color: #f2f2f2 !important;
+            color: #000 !important;
+            border-color: #000 !important;
+        }
+        
+        .badge {
+            border: 1px solid #000 !important;
+            color: #000 !important;
+        }
+        .badge-success { background-color: #d4edda !important; -webkit-print-color-adjust: exact; }
+        .badge-warning { background-color: #fff3cd !important; -webkit-print-color-adjust: exact; }
+        .badge-danger { background-color: #f8d7da !important; -webkit-print-color-adjust: exact; }
+        .badge-info { background-color: #d1ecf1 !important; -webkit-print-color-adjust: exact; }
+        .badge-primary { background-color: #cce5ff !important; -webkit-print-color-adjust: exact; }
+
+        .bg-success { 
+            background-color: #d4edda !important; 
+            color: #000 !important; 
+            -webkit-print-color-adjust: exact; 
+            print-color-adjust: exact;
+        }
+
+        tfoot td, tfoot th, .text-white {
+            color: #000 !important;
+        }
+    }
+</style>
+
 <div class="container-fluid">
     
     {{-- Header --}}
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">Laporan Capaian Mutu: {{ $prodi->name }}</h1>
-        <a href="{{ route('assessment.pilih_prodi') }}" class="btn btn-sm btn-secondary shadow-sm">
-            <i class="fas fa-arrow-left fa-sm text-white-50"></i> Kembali ke Pilih Prodi
-        </a>
+        
+        @if(auth()->check() && !in_array(auth()->user()->role, ['Ketua Program Studi', 'Sekretaris Program Studi']))
+            <a href="{{ route('assessment.pilih_prodi') }}" class="btn btn-sm btn-secondary shadow-sm">
+                <i class="fas fa-arrow-left fa-sm text-white-50"></i> Kembali ke Pilih Prodi
+            </a>
+        @endif
     </div>
 
     {{-- Info Card --}}

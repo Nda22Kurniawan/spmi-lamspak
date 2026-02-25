@@ -12,13 +12,23 @@
                 <form method="GET" action="{{ url()->current() }}" class="form-inline">
 
                     <label class="mr-2 font-weight-bold text-gray-700">Pilih Prodi:</label>
-                    <select name="prodi_id" class="form-control mr-4 mb-2 mb-sm-0" onchange="this.form.submit()">
+                    <select name="prodi_id" class="form-control mr-4 mb-2 mb-sm-0" onchange="this.form.submit()" 
+                            {{ in_array(auth()->user()->role, ['Ketua Program Studi', 'Sekretaris Program Studi']) ? 'style=pointer-events:none;background-color:#eaecf4;' : '' }}>
+                        
                         @foreach($allProdis as $p)
+                            @if(in_array(auth()->user()->role, ['Ketua Program Studi', 'Sekretaris Program Studi']) && $p->kode != auth()->user()->prodi_kode)
+                                @continue
+                            @endif
+
                             <option value="{{ $p->id }}" {{ $p->id == $prodi->id ? 'selected' : '' }}>
                                 {{ $p->name }}
                             </option>
                         @endforeach
                     </select>
+
+                    @if(in_array(auth()->user()->role, ['Ketua Program Studi', 'Sekretaris Program Studi']))
+                        <input type="hidden" name="prodi_id" value="{{ $prodi->id }}">
+                    @endif
 
                     <label class="mr-2 font-weight-bold text-gray-700">Tahun (TS):</label>
                     <select name="year" class="form-control mr-4 mb-2 mb-sm-0" onchange="this.form.submit()">
@@ -44,6 +54,16 @@
                 </h6>
             </div>
             <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6 offset-md-6">
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text bg-white text-primary"><i class="fas fa-search"></i></span>
+                            </div>
+                            <input type="text" id="searchVariable" class="form-control" placeholder="Cari Kode atau Nama Data Statistik...">
+                        </div>
+                    </div>
+                </div>
 
                 <form action="{{ route('raw_data.store') }}" method="POST">
                     @csrf
@@ -60,9 +80,10 @@
                                     <th style="width: 25%">Nilai (Angka)</th>
                                 </tr>
                             </thead>
-                            <tbody>
+
+                            <tbody id="variableTableBody">
                                 @forelse($variables as $var)
-                                    <tr>
+                                    <tr class="variable-row">
                                         <td>
                                             <span class="badge badge-secondary"
                                                 style="font-size: 0.9rem">{{ $var->code }}</span>
@@ -117,4 +138,18 @@
             </div>
         </div>
     </div>
+@endsection
+
+@section('script')
+<script>
+    $(document).ready(function(){
+        $("#searchVariable").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            
+            $("#variableTableBody .variable-row").filter(function() {
+                $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
 @endsection

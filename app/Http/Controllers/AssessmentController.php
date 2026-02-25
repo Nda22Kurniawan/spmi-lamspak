@@ -25,15 +25,36 @@ class AssessmentController extends Controller
 
     public function indexRawData(Request $request)
     {
-        $prodiId = $request->get('prodi_id');
-        if (!$prodiId) {
-            $firstProdi = Prodi::first();
-            $prodiId = $firstProdi->id;
+        $user = Auth::user();
+        $prodiId = null;
+
+        // 1. Penentuan ID Prodi berdasarkan Role
+        if (in_array($user->role, ['Ketua Program Studi', 'Sekretaris Program Studi'])) {
+            // Karena user menyimpan prodi_kode, kita cari ID prodi-nya dulu di tabel prodis
+            $userProdi = Prodi::where('kode', $user->prodi_kode)->first();
+            $prodiId = $userProdi ? $userProdi->id : null;
+        } else {
+            // Jika Admin / role lain, ambil dari dropdown
+            $prodiId = $request->get('prodi_id');
+            if (!$prodiId) {
+                $firstProdi = Prodi::first();
+                $prodiId = $firstProdi ? $firstProdi->id : null;
+            }
         }
 
-        $prodi = Prodi::findOrFail($prodiId);
+        // 2. Pencegahan Error 404
+        if (!$prodiId) {
+            return redirect()->route('dashboard')->with('error', 'Akses ditolak: Kode Prodi (' . $user->prodi_kode . ') pada akun Anda tidak ditemukan di master data Prodi.');
+        }
+
+        $prodi = Prodi::find($prodiId);
+
+        if (!$prodi) {
+            return redirect()->route('dashboard')->with('error', 'Prodi tidak ditemukan di database.');
+        }
 
         $allProdis = Prodi::all();
+
         if (!$prodi->accreditation_model_id) {
             return redirect()->back()->with('error', 'Prodi ini belum disetting LAM-nya.');
         }

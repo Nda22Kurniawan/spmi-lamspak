@@ -113,7 +113,6 @@
                     </div>
                     <div class="card-body">
                         
-                        {{-- [BARU] Kotak Pencarian --}}
                         <div class="row mb-3">
                             <div class="col-md-6 offset-md-6">
                                 <div class="input-group input-group-sm">
@@ -137,7 +136,6 @@
                                 </thead>
                                 <tbody>
                                     @forelse($variables as $var)
-                                        {{-- [BARU] Tambahan class 'var-row' untuk target javascript --}}
                                         <tr class="var-row {{ $editVariable && $editVariable->id == $var->id ? 'table-warning' : '' }}">
                                             <td class="align-middle var-kode"><code>{{ $var->code }}</code></td>
                                             <td class="align-middle var-nama">
@@ -153,18 +151,21 @@
                                                 @endif
                                             </td>
                                             <td class="text-center align-middle">
-                                                {{-- Tombol Edit: Reload halaman dengan parameter edit_id --}}
+                                                {{-- Tombol Edit --}}
                                                 <a href="{{ route('variable.index', ['lam_id' => $selectedLamId, 'edit_id' => $var->id]) }}" 
                                                    class="btn btn-warning btn-sm" title="Edit">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
 
-                                                <form action="{{ route('variable.destroy', $var->id) }}" method="POST" class="d-inline">
-                                                    @csrf @method('DELETE')
-                                                    <button class="btn btn-danger btn-sm" onclick="return confirm('Hapus variabel ini? Data yang sudah diinput akan hilang.')" title="Hapus">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </form>
+                                                {{-- [UPDATE] Tombol hapus memicu Modal Hapus --}}
+                                                <button type="button" class="btn btn-danger btn-sm btn-delete-var" 
+                                                        data-id="{{ $var->id }}" 
+                                                        data-code="{{ $var->code }}"
+                                                        data-toggle="modal" 
+                                                        data-target="#deleteModal" 
+                                                        title="Hapus">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
                                             </td>
                                         </tr>
                                     @empty
@@ -183,7 +184,34 @@
         </div>
     </div>
 
-    {{-- Script JS --}}
+    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <form id="deleteForm" action="" method="POST">
+            @csrf
+            @method('DELETE')
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header border-bottom-0 pb-0">
+                        <h5 class="modal-title font-weight-bold text-danger" id="deleteModalLabel">Yakin ingin menghapus?</h5>
+                        <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">×</span>
+                        </button>
+                    </div>
+                    <div class="modal-body py-4">
+                        Variabel Statistik <strong id="deleteVarCode" class="text-dark"></strong> akan dihapus permanen.<br>
+                        <small class="text-muted text-danger font-weight-bold">Perhatian: Data nilai (inputan) yang terkait dengan variabel ini juga akan ikut hilang!</small>
+                    </div>
+                    <div class="modal-footer bg-light border-top-0">
+                        <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                        <button class="btn btn-danger" type="submit">Hapus</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+@endsection
+
+@section('script')
     <script>
     function toggleFormula() {
         let type = document.getElementById('varType').value;
@@ -196,27 +224,36 @@
         }
     }
     
-    // Jalankan sekali saat halaman loading
     document.addEventListener("DOMContentLoaded", function() {
         toggleFormula();
 
-        // [BARU] Logika Pencarian Tabel (Live Search)
+        // Logika Pencarian Tabel (Live Search)
         document.getElementById('searchInput').addEventListener('keyup', function() {
             let filterText = this.value.toLowerCase();
             let rows = document.querySelectorAll('.var-row');
 
             rows.forEach(function(row) {
-                // Ambil nilai teks dari kolom kode dan nama
                 let kode = row.querySelector('.var-kode').textContent.toLowerCase();
                 let nama = row.querySelector('.var-nama').textContent.toLowerCase();
 
-                // Periksa apakah teks yang dicari ada di dalam kode atau nama
                 if (kode.includes(filterText) || nama.includes(filterText)) {
-                    row.style.display = ''; // Tampilkan baris
+                    row.style.display = ''; 
                 } else {
-                    row.style.display = 'none'; // Sembunyikan baris
+                    row.style.display = 'none'; 
                 }
             });
+        });
+    });
+
+    $(document).ready(function() {
+        $('.btn-delete-var').on('click', function() {
+            var id = $(this).data('id');
+            var code = $(this).data('code');
+            
+            var url = "{{ url('/master/variabel-data/hapus') }}/" + id;
+            
+            $('#deleteForm').attr('action', url);
+            $('#deleteVarCode').text(code);
         });
     });
     </script>

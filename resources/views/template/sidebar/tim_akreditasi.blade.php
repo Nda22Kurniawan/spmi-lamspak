@@ -108,7 +108,7 @@
     <hr class="sidebar-divider">
 
     {{-- BAGIAN 3: MANAJEMEN BERKAS --}}
-    <div class="sidebar-heading">
+    {{-- <div class="sidebar-heading">
         Manajemen Berkas
     </div>
 
@@ -124,7 +124,7 @@
             <i class="fa-solid fa-magnifying-glass"></i>
             <span>Multi Search Dokumen</span>
         </a>
-    </li>
+    </li> --}}
 
     {{-- ADMINISTRASI (Target & Mahasiswa) --}}
     <li class="nav-item">
@@ -135,7 +135,6 @@
         </a>
         <div id="pengaturan" class="collapse" aria-labelledby="heading2" data-parent="#accordionSidebar">
             <div class="bg-white py-2 collapse-inner rounded">
-                <a class="collapse-item" href="{{ url('target/' . Auth::user()->prodi_kode) }}">Target Pencapaian</a>
                 <a class="collapse-item" href="{{ url('data/mahasiswa/' . Auth::user()->prodi_kode) }}">Data Mahasiswa & Alumni</a>
             </div>
         </div>
