@@ -51,7 +51,7 @@ Route::get('diagram/login', fn() => redirect()->route('login'));
 // =============================================================
 
 Route::middleware(['auth', 'cekRole:Admin,Ketua LPM,Ketua Program Studi,Sekretaris Program Studi,Tim Akreditasi Program Studi,Dosen,UPPS,Mahasiswa,Alumni'])->group(function () {
-    
+
     try {
         $jenjangs = Jenjang::get();
         $prodis = Prodi::get();
@@ -69,7 +69,7 @@ Route::middleware(['auth', 'cekRole:Admin,Ketua LPM,Ketua Program Studi,Sekretar
     Route::post('/pengaturan/master-lam/simpan', [PengaturanController::class, 'storeLam'])->name('pengaturan.lam.store');
     Route::get('/pengaturan/master-lam/edit/{id}', [PengaturanController::class, 'editLam'])->name('pengaturan.lam.edit');
     Route::put('/pengaturan/master-lam/update/{id}', [PengaturanController::class, 'updateLam'])->name('pengaturan.lam.update');
-    
+
     Route::get('/pengaturan/mapping-lam', [PengaturanController::class, 'mappingLam'])->name('pengaturan.lam');
     Route::put('/pengaturan/mapping-lam/update', [PengaturanController::class, 'updateMappingLam'])->name('pengaturan.lam.mapping.update');
 
@@ -80,9 +80,6 @@ Route::middleware(['auth', 'cekRole:Admin,Ketua LPM,Ketua Program Studi,Sekretar
     Route::put('/master/klaster/update/{id}', [ClusterController::class, 'update'])->name('cluster.update');
     Route::delete('/master/klaster/hapus/{id}', [ClusterController::class, 'destroy'])->name('cluster.destroy');
 
-    Route::get('/master/indikator', [IndikatorController::class, 'index'])->name('indikator.index');
-    Route::delete('/master/indikator/hapus/{id}', [IndikatorController::class, 'destroy'])->name('indikator.destroy');
-    
     Route::get('/master/indikator/tambah', [IndikatorController::class, 'createByLam'])->name('indikator.wizard');
     Route::post('/master/indikator/simpan', [IndikatorController::class, 'storeWizard'])->name('indikator.storeWizard');
 
@@ -98,7 +95,7 @@ Route::middleware(['auth', 'cekRole:Admin,Ketua LPM,Ketua Program Studi,Sekretar
     Route::get('/diagram/lihat/{prodi_id}', [DiagramController::class, 'show'])->name('diagram.show');
 
     Route::get('/api/get-clusters-by-lam/{lam_id}', [IndikatorController::class, 'getClustersByLam']);
-    
+
 
     // ===========================================================
     // BAGIAN 2: FITUR LAMA (LEGACY / SISTEM AWAL)
@@ -120,35 +117,26 @@ Route::middleware(['auth', 'cekRole:Admin,Ketua LPM,Ketua Program Studi,Sekretar
     Route::post('sub-kriteria/l2/post', [Level2Controller::class, 'store']);
     Route::delete('sub-kriteria/l2/hapus/{l2}', [Level2Controller::class, 'hapus']);
     Route::put('sub-kriteria/l2/put/{l2}', [Level2Controller::class, 'put']);
-    foreach ($jenjangs as $jenjang) { Route::get("sub-kriteria/l2/{$jenjang->kode}", [Level2Controller::class, 'sort']); }
+    foreach ($jenjangs as $jenjang) {
+        Route::get("sub-kriteria/l2/{$jenjang->kode}", [Level2Controller::class, 'sort']);
+    }
 
     Route::get('sub-kriteria/l3', [Level3Controller::class, 'index'])->name('level3');
     Route::post('sub-kriteria/l3/post', [Level3Controller::class, 'store']);
     Route::delete('sub-kriteria/l3/hapus/{l3}', [Level3Controller::class, 'hapus']);
     Route::put('sub-kriteria/l3/put/{l3}', [Level3Controller::class, 'put']);
-    foreach ($jenjangs as $jenjang) { Route::get("sub-kriteria/l3/{$jenjang->kode}", [Level3Controller::class, 'sort']); }
+    foreach ($jenjangs as $jenjang) {
+        Route::get("sub-kriteria/l3/{$jenjang->kode}", [Level3Controller::class, 'sort']);
+    }
 
     Route::get('sub-kriteria/l4', [Level4Controller::class, 'index'])->name('level4');
     Route::post('sub-kriteria/l4/post', [Level4Controller::class, 'store']);
     Route::delete('sub-kriteria/l4/hapus/{l4}', [Level4Controller::class, 'hapus']);
     Route::put('sub-kriteria/l4/put/{l4}', [Level4Controller::class, 'put']);
-    foreach ($jenjangs as $jenjang) { Route::get("sub-kriteria/l4/{$jenjang->kode}", [Level4Controller::class, 'sort']); }
-
     foreach ($jenjangs as $jenjang) {
-        Route::get("indikator/{$jenjang->kode}", [IndikatorController::class, 'index'])->name("indikator-{$jenjang->kode}");
+        Route::get("sub-kriteria/l4/{$jenjang->kode}", [Level4Controller::class, 'sort']);
     }
-    Route::post('indikator/store', [IndikatorController::class, 'store']);
-    Route::get('indikator/input-score/{indikator}', [IndikatorController::class, 'inputScore']);
-    Route::post('indikator/store-score', [IndikatorController::class, 'storeScore']);
-    Route::get('indikator/cek-score/{indikator}', [IndikatorController::class, 'cekScore']);
-    Route::get('indikator/konfirmasi/{indikator}', [IndikatorController::class, 'konfirmasi']);
-    Route::delete('indikator/hapus/{indikator}', [IndikatorController::class, 'hapusIndikator']);
-    Route::get('indikator/edit/{indikator}', [IndikatorController::class, 'editFormIndikator']);
-    Route::put('indikator/put/{indikator}', [IndikatorController::class, 'putIndikator']);
-    Route::get('indikator/konfrimasi-score/{score}', [IndikatorController::class, 'konfirmasiScore']);
-    Route::delete('indikator/score-hapus/{score}', [IndikatorController::class, 'hapusScore']);
-    Route::get('indikator/score/edit/{score}', [IndikatorController::class, 'editScore']);
-    Route::put('indikator/score/put/{score}', [IndikatorController::class, 'putScore']);
+
     Route::get('/indikator', [IndikatorController::class, 'index'])->name('indikator.index');
     Route::get('/indikator/tambah', [IndikatorController::class, 'create'])->name('indikator.create');
     Route::post('/indikator/simpan', [IndikatorController::class, 'storeWizard'])->name('indikator.storeWizard');
@@ -156,7 +144,7 @@ Route::middleware(['auth', 'cekRole:Admin,Ketua LPM,Ketua Program Studi,Sekretar
     Route::put('/indikator/{id}', [IndikatorController::class, 'update'])->name('indikator.update');
     Route::delete('/indikator/{id}', [IndikatorController::class, 'destroy'])->name('indikator.destroy');
     Route::get('/api/get-variables-by-lam/{lam_id}', [IndikatorController::class, 'getVariablesByLam']);
-    
+
     foreach ($prodis as $prodi) {
         Route::get("element/{$prodi->kode}", [ElementController::class, 'index'])->name("element-{$prodi->kode}");
     }
@@ -220,47 +208,10 @@ Route::middleware(['auth', 'cekRole:Admin,Ketua LPM,Ketua Program Studi,Sekretar
 
     Route::get('/variabel', [RawDataVariableController::class, 'index'])->name('variable.index');
     Route::post('/variabel', [RawDataVariableController::class, 'store'])->name('variable.store');
-    Route::put('/variabel/{id}', [RawDataVariableController::class, 'update'])->name('variable.update'); // <--- INI BARU
+    Route::put('/variabel/{id}', [RawDataVariableController::class, 'update'])->name('variable.update');
     Route::delete('/variabel/{id}', [RawDataVariableController::class, 'destroy'])->name('variable.destroy');
-
-    Route::get('/master/variabel-data', [RawDataVariableController::class, 'index'])->name('variable.index');
-    Route::post('/master/variabel-data/simpan', [RawDataVariableController::class, 'store'])->name('variable.store');
-    Route::delete('/master/variabel-data/hapus/{id}', [RawDataVariableController::class, 'destroy'])->name('variable.destroy');
     Route::get('/api/get-variables-by-lam/{lam_id}', [RawDataVariableController::class, 'getVariablesByLam'])
-    ->name('api.variables.by.lam');
+        ->name('api.variables.by.lam');
 
     Route::resource('rubrics', RubricController::class)->except(['create', 'show', 'edit']);
 });
-
-// =============================================================
-// DROPDOWN AJAX ROUTES
-// =============================================================
-
-Route::post('dropdownlist/getJen', [DropdownController::class, 'getJen'])->name('getJen');
-Route::post('dropdownlist/getPro', [DropdownController::class, 'getPro'])->name('getPro');
-Route::post('dropdownlist/getIndikator', [DropdownController::class, 'getIndikator'])->name('getInd');
-Route::post('dropdownlist/getScore', [DropdownController::class, 'getScore'])->name('getScore');
-Route::post('dropdownlist/getl1', [DropdownController::class, 'getL1'])->name('l1');
-Route::post('dropdownlist/getl2', [DropdownController::class, 'getL2'])->name('l2');
-Route::post('dropdownlist/getl3', [DropdownController::class, 'getL3'])->name('l3');
-Route::post('dropdownlist/getl4', [DropdownController::class, 'getL4'])->name('l4');
-
-// No Multiple Saat Edit Berkas
-Route::post('dropdownlist/getl1ne', [DropdownController::class, 'getL1ne'])->name('l1ne');
-Route::post('dropdownlist/getl2ne', [DropdownController::class, 'getL2ne'])->name('l2ne');
-Route::post('dropdownlist/getl3ne', [DropdownController::class, 'getL3ne'])->name('l3ne');
-Route::post('dropdownlist/getl4ne', [DropdownController::class, 'getL4ne'])->name('l4ne');
-
-// No Multiple [Sub Butir L2 - L4]
-Route::post('dropdownlist/getjn', [DropdownController::class, 'getjn'])->name('jn');
-Route::post('dropdownlist/getl1n', [DropdownController::class, 'getL1n'])->name('l1n');
-Route::post('dropdownlist/getl2n', [DropdownController::class, 'getL2n'])->name('l2n');
-Route::post('dropdownlist/getl3n', [DropdownController::class, 'getL3n'])->name('l3n');
-Route::post('dropdownlist/getl4n', [DropdownController::class, 'getL4n'])->name('l4n');
-
-// No Multiple Saat Edit Level [Sub Butir L2 - L4]
-Route::post('dropdownlist/getjnu', [DropdownController::class, 'getjnu'])->name('jnu');
-Route::post('dropdownlist/getl1nu', [DropdownController::class, 'getL1nu'])->name('l1nu');
-Route::post('dropdownlist/getl2nu', [DropdownController::class, 'getL2nu'])->name('l2nu');
-Route::post('dropdownlist/getl3nu', [DropdownController::class, 'getL3nu'])->name('l3nu');
-Route::post('dropdownlist/getl4nu', [DropdownController::class, 'getL4nu'])->name('l4nu');
