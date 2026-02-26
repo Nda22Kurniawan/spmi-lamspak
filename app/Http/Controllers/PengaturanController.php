@@ -31,7 +31,7 @@ class PengaturanController extends Controller
         </button>
         <strong>Data ' . $request->name . ' Berhasil Ditambahkan</strong>
     </div>');
-        return redirect()->route('jenjang');
+        return redirect()->back();
     }
 
     public function jenjangDelete(Jenjang $jenjang)
@@ -44,7 +44,7 @@ class PengaturanController extends Controller
         <strong>Data ' . $jenjang->name . ' Berhasil Dihapus</strong>
     </div>');
         $jenjang->delete();
-        return redirect()->route('jenjang');
+        return redirect()->back();
     }
 
     public function jenjangPut(Request $request, Jenjang $jenjang)
@@ -61,7 +61,7 @@ class PengaturanController extends Controller
         </button>
         <strong>Data Berhasil Diedit</strong>
     </div>');
-        return redirect()->route('jenjang');
+        return redirect()->back();
     }
 
     public function prodi()
@@ -98,7 +98,7 @@ class PengaturanController extends Controller
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
             <span aria-hidden="true">&times;</span>
         </button>
-        <strong>Data ' . $prodi->name . ' Berhasil Dihapus</strong>
+        <strong>Program Studi ' . $prodi->name . ' Berhasil Dihapus</strong>
     </div>');
         $prodi->delete();
         return redirect()->route('prodi');
