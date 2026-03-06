@@ -35,19 +35,40 @@
 
             <div class="card-body">
 
-                {{-- FILTER SECTION (Menggunakan AccreditationModel) --}}
-                <div class="form-group row">
-                    <label class="col-sm-3 col-form-label font-weight-bold">Pilih Instrumen (LAM):</label>
-                    <div class="col-sm-6">
-                        <select id="filterLam" class="form-control" onchange="window.location.href='?lam_id='+this.value">
-                            @foreach($lams as $lam)
-                                <option value="{{ $lam->id }}" {{ $selectedLamId == $lam->id ? 'selected' : '' }}>
-                                    {{ $lam->name }} {{-- Misal: LAM INFOKOM --}}
-                                </option>
-                            @endforeach
-                        </select>
+                {{-- FILTER & SEARCH SECTION --}}
+                <form action="{{ url()->current() }}" method="GET" class="mb-4">
+                    <div class="row">
+                        {{-- Filter LAM --}}
+                        <div class="col-md-5 mb-2">
+                            <label class="font-weight-bold">Pilih Instrumen (LAM):</label>
+                            <select name="lam_id" class="form-control" onchange="this.form.submit()">
+                                @foreach($lams as $lam)
+                                    <option value="{{ $lam->id }}" {{ $selectedLamId == $lam->id ? 'selected' : '' }}>
+                                        {{ $lam->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        {{-- Search Bar --}}
+                        <div class="col-md-5 mb-2 offset-md-2">
+                            <label class="font-weight-bold">Cari Indikator:</label>
+                            <div class="input-group">
+                                <input type="text" name="search" class="form-control" placeholder="Ketik Kode atau Nama Indikator..." value="{{ request('search') }}">
+                                <div class="input-group-append">
+                                    <button class="btn btn-primary" type="submit">
+                                        <i class="fas fa-search"></i> Cari
+                                    </button>
+                                    @if(request('search'))
+                                        <a href="{{ url()->current() }}?lam_id={{ $selectedLamId }}" class="btn btn-danger" title="Reset Pencarian">
+                                            <i class="fas fa-times"></i>
+                                        </a>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
+                </form>
 
                 <hr>
 
@@ -64,7 +85,7 @@
                         <tbody>
                             @forelse($indicators as $indicator)
 
-                                {{-- 1. HITUNG NILAI MAKSIMAL UNTUK INDIKATOR INI --}}
+                                {{-- HITUNG NILAI MAKSIMAL UNTUK INDIKATOR INI --}}
                                 @php
                                     $maxScore = $indicator->rubrics->max('score_value') ?? 4;
                                 @endphp
@@ -82,38 +103,28 @@
                                 @foreach($indicator->rubrics as $rubric)
                                     <tr>
                                         <td class="text-center align-middle">
-
-                                            {{-- 2. LOGIKA WARNA DINAMIS --}}
                                             @php
                                                 $badgeClass = 'badge-danger'; // Default Merah
-
                                                 if ($maxScore > 0) {
                                                     $percentage = $rubric->score_value / $maxScore;
-
                                                     if ($percentage >= 0.75) {
-                                                        $badgeClass = 'badge-success'; // Hijau (75% - 100%)
+                                                        $badgeClass = 'badge-success'; // Hijau
                                                     } elseif ($percentage >= 0.5) {
-                                                        $badgeClass = 'badge-warning'; // Kuning (50% - 74%)
+                                                        $badgeClass = 'badge-warning'; // Kuning
                                                     }
                                                 }
                                             @endphp
-
                                             <span class="badge {{ $badgeClass }} px-3 py-2" style="font-size:14px">
                                                 {{ $rubric->score_value }}
                                             </span>
-
                                         </td>
-
                                         <td class="align-middle">
                                             {!! nl2br(e($rubric->description)) !!}
                                         </td>
-
                                         <td class="text-center align-middle">
-                                            <button class="btn btn-sm btn-warning" data-toggle="modal"
-                                                data-target="#editModal{{ $rubric->id }}">
+                                            <button class="btn btn-sm btn-warning" data-toggle="modal" data-target="#editModal{{ $rubric->id }}">
                                                 <i class="fas fa-edit"></i>
                                             </button>
-
                                             <button type="button" class="btn btn-sm btn-danger btn-delete-rubric" 
                                                     data-id="{{ $rubric->id }}" 
                                                     data-score="{{ $rubric->score_value }}"
@@ -124,7 +135,6 @@
                                             </button>
                                         </td>
                                     </tr>
-
                                     @include('rubrics.partials.modal_edit', ['rubric' => $rubric])
                                 @endforeach
 
@@ -132,7 +142,7 @@
                                     <tr>
                                         <td colspan="3" class="text-center text-muted font-italic py-2">
                                             Belum ada rubrik. <a href="#" data-toggle="modal" data-target="#addModal"
-                                                onclick="$('#selectIndicator').val({{ $indicator->id }})">Tambah sekarang</a>.
+                                                onclick="$('#selectIndicator').val({{ $indicator->id }}).trigger('change')">Tambah sekarang</a>.
                                         </td>
                                     </tr>
                                 @endif
@@ -146,26 +156,26 @@
                     </table>
                 </div>
 
-                {{-- Pagination --}}
+                {{-- Pagination (Sertakan query parameter agar pagination jalan saat di-search) --}}
                 <div class="mt-3">
-                    {{ $indicators->links() }}
+                    {{ $indicators->appends(request()->query())->links() }}
                 </div>
 
             </div>
         </div>
     </div>
 
-    {{-- MODAL CREATE --}}
-    @include('rubrics.partials.modal_create', ['all_indicators' => $indicators])
+    {{-- MODAL CREATE [UPDATE: MENGGUNAKAN VARIABEL $all_indicators DARI CONTROLLER] --}}
+    @include('rubrics.partials.modal_create', ['all_indicators' => $all_indicators])
 
-    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    {{-- MODAL DELETE --}}
+    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-hidden="true">
         <form id="deleteForm" action="" method="POST">
-            @csrf
-            @method('DELETE')
+            @csrf @method('DELETE')
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header border-bottom-0 pb-0">
-                        <h5 class="modal-title font-weight-bold text-danger" id="deleteModalLabel">Yakin ingin menghapus?</h5>
+                        <h5 class="modal-title font-weight-bold text-danger">Yakin ingin menghapus?</h5>
                         <button class="close" type="button" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">×</span>
                         </button>
@@ -188,12 +198,18 @@
 @section('script')
 <script>
     $(document).ready(function() {
+        // Inisialisasi Select2 pada modal Tambah agar lebih mudah mencari indikator di dropdown
+        $('#selectIndicator').select2({
+            dropdownParent: $('#addModal'),
+            width: '100%',
+            placeholder: "-- Cari & Pilih Indikator --"
+        });
+
+        // Script Delete
         $('.btn-delete-rubric').on('click', function() {
             var id = $(this).data('id');
             var score = $(this).data('score');
-            
             var url = "{{ url('/rubrics') }}/" + id;
-            
             $('#deleteForm').attr('action', url);
             $('#deleteRubricScore').text(score);
         });
