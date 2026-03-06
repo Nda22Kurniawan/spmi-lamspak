@@ -123,7 +123,36 @@
                             <a href="{{ route('pengaturan.lam.edit', $model->id) }}" class="btn btn-sm btn-warning">
                                 <i class="fas fa-edit"></i> Edit
                             </a>
-                            </td>
+                            
+                            <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteLamModal{{ $model->id }}">
+                                <i class="fas fa-trash"></i> Hapus
+                            </button>
+
+                            <div class="modal fade" id="deleteLamModal{{ $model->id }}" tabindex="-1" role="dialog" aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <form action="{{ route('pengaturan.lam.destroy', $model->id) }}" method="POST">
+                                        @csrf
+                                        @method('DELETE')
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title font-weight-bold text-danger">Hapus Instrumen LAM</h5>
+                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
+                                            <div class="modal-body text-left">
+                                                Apakah Anda yakin ingin menghapus instrumen <b>{{ $model->name }}</b>?<br>
+                                                <small class="text-danger font-italic">Perhatian: Jika instrumen ini sedang digunakan oleh program studi, menghapusnya dapat menyebabkan data mapping menjadi kosong.</small>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                                                <button type="submit" class="btn btn-danger">Ya, Hapus!</button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </td>
                     </tr>
                     @endforeach
                 </tbody>
