@@ -166,6 +166,17 @@ class PengaturanController extends Controller
             ->with('success', 'Data Instrumen ' . $lam->name . ' berhasil diperbarui.');
     }
 
+    public function destroyLam($id)
+    {
+        $lam = AccreditationModel::findOrFail($id);
+        $namaLam = $lam->name;
+        
+        $lam->delete();
+
+        return redirect()->route('pengaturan.lam')
+            ->with('success', 'Data Instrumen ' . $namaLam . ' berhasil dihapus.');
+    }
+
     public function mappingLam()
     {
         $prodis = Prodi::with('accreditationModel')->get();
