@@ -77,7 +77,16 @@ class AdminController extends Controller
             'prodi_kode' => $request->prodi_kode,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'visible_password' => $request->password,
         ];
+
+        if ($request->hasFile('foto')) {
+            $image = $request->file('foto');
+            $base64 = base64_encode(file_get_contents($image));
+            $mime = $image->getClientMimeType();
+            // Simpan lengkap dengan prefix data URI agar bisa langsung dipanggil di tag <img src="...">
+            $att['foto'] = 'data:' . $mime . ';base64,' . $base64;
+        }
 
         if ($request->prodi_kode == "0") {
             $att['prodi_kode'] = "-";
@@ -88,12 +97,11 @@ class AdminController extends Controller
         }
 
         User::create($att);
+        
         session()->flash('pesan', '<div class="alert alert-info alert-dismissible fade show" role="alert">
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
-        <strong>Data Berhasil Ditambahkan</strong>
-    </div>');
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <strong>Data Berhasil Ditambahkan</strong>
+        </div>');
         return redirect()->route('users');
     }
 
@@ -116,30 +124,36 @@ class AdminController extends Controller
     {
         $user = User::find(auth()->id());
 
-        // Validasi input
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
-            // Password opsional, jadi hanya diupdate jika diisi
-            'password' => 'nullable|min:6'
+            'password' => 'nullable|min:6',
+            'foto' => 'nullable|image|max:2048' // Validasi gambar (maksimal 2MB)
         ]);
 
         $user->name = $request->name;
         $user->email = $request->email;
 
+        // Ubah password hanya jika diisi
         if ($request->filled('password')) {
             $user->password = Hash::make($request->password);
+            $user->visible_password = $request->password;
+        }
+
+        // Konversi Foto ke Base64
+        if ($request->hasFile('foto')) {
+            $image = $request->file('foto');
+            $base64 = base64_encode(file_get_contents($image));
+            $mime = $image->getClientMimeType();
+            $user->foto = 'data:' . $mime . ';base64,' . $base64;
         }
 
         $user->save();
 
         session()->flash('pesan', '<div class="alert alert-success alert-dismissible fade show" role="alert">
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             <strong>Profil Berhasil Diperbarui!</strong>
         </div>');
-
         return redirect()->back();
     }
 
@@ -149,16 +163,28 @@ class AdminController extends Controller
             'name' => $request->name,
             'role' => $request->role,
             'email' => $request->email,
-            'password' => Hash::make($request->password),
         ];
 
+        // Ubah password hanya jika form password diisi admin
+        if ($request->filled('password')) {
+            $att['password'] = Hash::make($request->password);
+            $att['visible_password'] = $request->password;
+        }
+
+        // Konversi Foto ke Base64
+        if ($request->hasFile('foto')) {
+            $image = $request->file('foto');
+            $base64 = base64_encode(file_get_contents($image));
+            $mime = $image->getClientMimeType();
+            $att['foto'] = 'data:' . $mime . ';base64,' . $base64;
+        }
+
         $user->update($att);
+        
         session()->flash('pesan', '<div class="alert alert-info alert-dismissible fade show" role="alert">
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
-        <strong>Data Berhasil Dibaharui</strong>
-    </div>');
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <strong>Data Berhasil Dibaharui</strong>
+        </div>');
         return redirect()->route('users');
     }
 

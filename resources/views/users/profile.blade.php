@@ -11,11 +11,30 @@
                     
                     {!! session('pesan') !!}
 
-                    <form action="{{ route('profile.update') }}" method="POST">
+                    <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         @method('PUT')
 
-                        <div class="form-group">
+                        <div class="form-group text-center mb-4">
+                            {{-- [UPDATE] Tambahkan id="imgPreview" pada gambar --}}
+                            @if($user->foto)
+                                <img src="{{ $user->foto }}" id="imgPreview" alt="Foto Profil" class="img-profile rounded-circle mb-3 shadow-sm" style="width: 150px; height: 150px; object-fit: cover; border: 3px solid #eaecf4;">
+                            @else
+                                <img src="{{ asset('portal/img/undraw_profile.svg') }}" id="imgPreview" alt="Default Profile" class="img-profile rounded-circle mb-3 shadow-sm" style="width: 150px; height: 150px; object-fit: cover; border: 3px solid #eaecf4;">
+                            @endif
+                            <br>
+                            <label class="font-weight-bold d-block">Ubah Foto Profil (Opsional)</label>
+                            
+                            {{-- [UPDATE] Tambahkan id="fotoInput" pada input file --}}
+                            <input type="file" name="foto" id="fotoInput" class="form-control-file text-center mx-auto" accept="image/*" style="max-width: 250px;">
+                            
+                            <small class="text-muted d-block mt-1">Maksimal ukuran file 2MB.</small>
+                            @error('foto') <small class="text-danger">{{ $message }}</small> @enderror
+                        </div>
+
+                        <hr>
+
+                        <div class="form-group mt-3">
                             <label class="font-weight-bold">Nama Lengkap</label>
                             <input type="text" name="name" value="{{ old('name', $user->name) }}" class="form-control" required>
                             @error('name') <small class="text-danger">{{ $message }}</small> @enderror
@@ -63,15 +82,30 @@
 
 @section('script')
 <script>
+    // 1. Script Live Preview Foto Profil
+    document.getElementById('fotoInput').addEventListener('change', function(event) {
+        const [file] = event.target.files;
+        if (file) {
+            const preview = document.getElementById('imgPreview');
+            // Membuat URL sementara dari file yang dipilih pengguna
+            preview.src = URL.createObjectURL(file);
+        }
+    });
+
+    // 2. Script Toggle Lihat Password
     document.getElementById('togglePassword').addEventListener('click', function () {
         const passwordInput = document.getElementById('passwordInput');
         const eyeIcon = document.getElementById('eyeIcon');
         
-        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-        passwordInput.setAttribute('type', type);
-        
-        eyeIcon.classList.toggle('fa-eye-slash');
-        eyeIcon.classList.toggle('fa-eye');
+        if (passwordInput.getAttribute('type') === 'password') {
+            passwordInput.setAttribute('type', 'text');
+            eyeIcon.classList.remove('fa-eye');
+            eyeIcon.classList.add('fa-eye-slash');
+        } else {
+            passwordInput.setAttribute('type', 'password');
+            eyeIcon.classList.remove('fa-eye-slash');
+            eyeIcon.classList.add('fa-eye');
+        }
     });
 </script>
 @endsection

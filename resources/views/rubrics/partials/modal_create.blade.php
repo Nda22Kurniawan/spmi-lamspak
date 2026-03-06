@@ -14,15 +14,15 @@
                     {{-- Input Indikator --}}
                     <div class="form-group">
                         <label for="selectIndicator" class="font-weight-bold">Pilih Indikator</label>
-                        <select name="indicator_id" id="selectIndicator" class="form-control" required>
-                            <option value="">-- Pilih Indikator --</option>
+                        {{-- Class select2 akan disasar oleh javascript di halaman index --}}
+                        <select name="indicator_id" id="selectIndicator" class="form-control select2" required>
+                            <option value="">-- Cari & Pilih Indikator --</option>
                             @foreach($all_indicators as $ind)
                                 <option value="{{ $ind->id }}">
-                                    {{ $ind->code }} - {{ \Illuminate\Support\Str::limit($ind->name, 50) }}
+                                    {{ $ind->code }} - {{ \Illuminate\Support\Str::limit($ind->description ?? $ind->name, 70) }}
                                 </option>
                             @endforeach
                         </select>
-                        <small class="text-muted">Hanya indikator di halaman ini yang muncul.</small>
                     </div>
 
                     {{-- Input Nilai Skor --}}
