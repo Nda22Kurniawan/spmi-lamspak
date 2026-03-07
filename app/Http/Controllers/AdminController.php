@@ -46,7 +46,7 @@ class AdminController extends Controller
 
     public function tambahTimAkreditasi()
     {
-        return view('users.tambah.tim_akreditasi', [
+        return view('users.tambah.tim-akreditasi', [
             'prodi' => Prodi::all(),
         ]);
     }

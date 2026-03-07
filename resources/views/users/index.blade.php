@@ -61,6 +61,8 @@
 
                         <li><a href="{{ route('tambah-sekprodi') }}">Sekretaris Program Studi</a></li>
 
+                        <li><a href="{{ route('tambah-tim-akreditasi') }}">Tim Akreditasi Program Studi</a></li>
+
                         <li><a href="{{ route('tambah-dosen') }}">Dosen</a></li>
 
                         @if (Auth::user()->role == 'Admin')
