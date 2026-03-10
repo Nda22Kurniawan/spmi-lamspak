@@ -263,25 +263,24 @@
                     <li><a class="nav-link scrollto {{ request()->is('/') ? 'active' : '' }}"
                             href="{{ route('home') }}">Home</a>
                     </li>
-                    <li><a class="nav-link scrollto {{ request()->is('diagram*') ? 'active' : '' }}"
-                            href="{{ route('diagram') }}">Diagram
-                            Pencapaian</a></li>
+                    {{-- <li><a class="nav-link scrollto {{ request()->is('diagram*') ? 'active' : '' }}"
+                            href="{{ route('diagram') }}">Diagram Pencapaian</a></li> --}}
                     <!-- <li class="dropdown"><a href="#"><span>Search</span> <i class="bi bi-chevron-down"></i></a>
                         <ul>
                             <li><a href="{{ route('multipleSearch') }}">Multiple Search</a></li>
                             <li><a href="{{ route('singleSearch') }}">Single Search</a></li>
                         </ul>
                     </li> -->
-                    <li class="dropdown"><a href="#"><span>Berkas</span> <i class="bi bi-chevron-down"></i></a>
+                    {{-- <li class="dropdown"><a href="#"><span>Berkas</span> <i class="bi bi-chevron-down"></i></a>
                         <ul>
                             @foreach ($data['p'] as $pr)
                                 <li><a href="{{ url('tabel/' . $pr->kode) }}">{{ $pr->name }}</a></li>
                             @endforeach
                         </ul>
-                    </li>
+                    </li> --}}
                     <li>
                         @if (Auth::guest())
-                            <a class="getstarted scrollto" href="{{ route('login') }}">Login Admin</a>
+                            <a class="getstarted scrollto" href="{{ route('login') }}">Login</a>
                         @else
                             <a class="getstarted scrollto" href="{{ route('dashboard') }}">Dashboard</a>
                         @endif
@@ -315,8 +314,7 @@
                         <h4 class="footer-heading">Tautan Cepat</h4>
                         <ul>
                             <li><i class="bi bi-chevron-right"></i> <a href="{{ route('home') }}">Home</a></li>
-                            <li><i class="bi bi-chevron-right"></i> <a href="{{ route('diagram') }}">Diagram
-                                    Pencapaian</a></li>
+                            {{-- <li><i class="bi bi-chevron-right"></i> <a href="{{ route('diagram') }}">Diagram Pencapaian</a></li> --}}
                             <!-- <li><i class="bi bi-chevron-right"></i> <a href="{{ route('multipleSearch') }}">Multiple
                                     Search</a></li>
                             <li><i class="bi bi-chevron-right"></i> <a href="{{ route('singleSearch') }}">Single
@@ -329,7 +327,8 @@
                         <ul>
                             @foreach ($data['p'] as $pr)
                                 <li><i class="bi bi-chevron-right"></i> <a
-                                        href="{{ url('tabel/' . $pr->kode) }}">{{ $pr->name }}</a></li>
+                                        {{-- href="{{ url('tabel/' . $pr->kode) }}">{{ $pr->name }}</a></li> --}}
+                                        href="#">{{ $pr->name }}</a></li>
                             @endforeach
                         </ul>
                     </div>
@@ -338,7 +337,7 @@
                         <h4 class="footer-heading">Akun</h4>
                         <ul>
                             @if (Auth::guest())
-                                <li><i class="bi bi-chevron-right"></i> <a href="{{ route('login') }}">Login Admin</a></li>
+                                <li><i class="bi bi-chevron-right"></i> <a href="{{ route('login') }}">Login</a></li>
                             @else
                                 <li><i class="bi bi-chevron-right"></i> <a href="{{ route('dashboard') }}">Dashboard</a>
                                 </li>
