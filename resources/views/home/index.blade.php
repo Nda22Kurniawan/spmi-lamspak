@@ -150,7 +150,8 @@
                             @foreach ($data['p'] as $i)
                                 <li>
                                     <i class="bi bi-check-circle-fill"></i>
-                                    <a href="{{ url('diagram/' . $i->kode) }}">
+                                    {{-- <a href="{{ url('diagram/' . $i->kode) }}"> --}}
+                                    <a href="#">
                                         {{ $i->name }} - <b>{{ $i->kode }}</b> ({{ $i->jenjang->kode }})
                                     </a>
                                 </li>
