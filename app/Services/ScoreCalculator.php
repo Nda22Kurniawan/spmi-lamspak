@@ -3,8 +3,6 @@
 namespace App\Services;
 
 use App\Models\Indicator;
-use App\Models\ProdiRawValue;
-use App\Models\RawDataVariable;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 
 class ScoreCalculator
@@ -29,7 +27,7 @@ class ScoreCalculator
             $score = $language->evaluate($indicator->custom_formula, $variables);
 
             return max(0, min(4, $score));
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return 0;
         }
     }
@@ -49,6 +47,7 @@ class ScoreCalculator
                 $result[$var->code] = $data ? (float) $data->value : 0.0;
             }
         }
+
         $language = new ExpressionLanguage();
 
         foreach ($allVars as $var) {
@@ -60,9 +59,7 @@ class ScoreCalculator
 
                     $calculatedValue = $language->evaluate($var->calculation_formula, $result);
                     $result[$var->code] = (float) $calculatedValue;
-                } catch (\Exception $e) {
-                    $result[$var->code] = 0.0;
-                } catch (\Exception $e) {
+                } catch (\Throwable $e) {
                     $result[$var->code] = 0.0;
                 }
             }
