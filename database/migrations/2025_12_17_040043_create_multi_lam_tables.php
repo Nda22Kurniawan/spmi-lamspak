@@ -36,7 +36,7 @@ return new class extends Migration
         Schema::create('indicators', function (Blueprint $table) {
             $table->id();
             $table->foreignId('cluster_id')->constrained('assessment_clusters')->onDelete('cascade');
-            $table->string('code', 50); // "C.1.a"
+            $table->string('code', 250); // "C.1.a"
             $table->text('description'); // Pertanyaan
             $table->enum('type', ['QUALITATIVE', 'QUANTITATIVE']);
             $table->string('calculation_code', 100)->nullable(); // Logic rumus (Strategy Pattern)
