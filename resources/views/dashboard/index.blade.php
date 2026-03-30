@@ -51,7 +51,7 @@
                         @else
                         Saat ini kamu bertugas sebagai <b>{{ Auth::user()->role }}</b> pada Program Studi
                         <b>{{ Auth::user()->prodi_name }}</b>. Kamu dapat melakukan peningkatan dan pemberkasan melalui menu
-                        Element dan Berkas.
+                        Isi Asesmen Mutu.
                         @endif
                     </p>
                     <hr>
