@@ -1,6 +1,5 @@
 <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
 
-    <!-- Sidebar - Brand -->
     <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{{ route('dashboard') }}">
         <div class="sidebar-brand-icon">
             <i class="fas fa-book-open"></i>
@@ -8,48 +7,59 @@
         <div class="sidebar-brand-text mx-3">FTIK USM</div>
     </a>
 
-    <!-- Divider -->
     <hr class="sidebar-divider my-0">
 
-    <!-- Nav Item - Dashboard -->
     <li class="nav-item">
         <a class="nav-link" href="{{ route('home') }}">
             <i class="fa-solid fa-house"></i>
-            <span>Home Page</span></a>
+            <span>Home Page</span>
+        </a>
         <a class="nav-link" href="{{ route('dashboard') }}">
             <i class="fas fa-fw fa-tachometer-alt"></i>
-            <span>Dashboard</span></a>
-
+            <span>Dashboard</span>
+        </a>
     </li>
 
-    <!-- Divider -->
     <hr class="sidebar-divider">
 
-    <!-- Heading -->
     <div class="sidebar-heading">
-        Master Menu
+        Pantau Mutu (LPM)
     </div>
 
-    <li class="nav-item">
-        <a class="nav-link" href="{{ route(Auth::user()->prodi_kode) }}">
-            <i class="fa-solid fa-circle-check"></i>
-            <span>Penilain & Diagram</span></a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link" href="{{ route('element-' . Auth::user()->prodi_kode) }}">
-            <i class="fa-brands fa-elementor"></i>
-            <span>Element & Berkas</span></a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link" href="{{ route('berkas') }}">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <span>Multi Search</span></a>
+    <li class="nav-item {{ request()->routeIs('raw_data.index') ? 'active' : '' }}">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseDkpsLpm" aria-expanded="true"
+            aria-controls="collapseDkpsLpm">
+            <i class="fas fa-fw fa-calculator"></i>
+            <span>Data Statistik (DKPS)</span>
+        </a>
+        <div id="collapseDkpsLpm" class="collapse" aria-labelledby="headingDkpsLpm" data-parent="#accordionSidebar">
+            <div class="bg-white py-2 collapse-inner rounded">
+                <h6 class="collapse-header">Pilih Program Studi:</h6>
+                @foreach ($data['p'] as $pr)
+                    <a class="collapse-item" href="{{ route('raw_data.index', ['prodi_id' => $pr->id]) }}">{{ $pr->name }}</a>
+                @endforeach
+            </div>
+        </div>
     </li>
 
-    <!-- Divider -->
+    <li class="nav-item {{ request()->routeIs('diagram.show') ? 'active' : '' }}">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseGrafikLpm" aria-expanded="true"
+            aria-controls="collapseGrafikLpm">
+            <i class="fas fa-fw fa-chart-pie"></i>
+            <span>Grafik & Laporan</span>
+        </a>
+        <div id="collapseGrafikLpm" class="collapse" aria-labelledby="headingGrafikLpm" data-parent="#accordionSidebar">
+            <div class="bg-white py-2 collapse-inner rounded">
+                <h6 class="collapse-header">Pilih Program Studi:</h6>
+                @foreach ($data['p'] as $pr)
+                    <a class="collapse-item" href="{{ route('diagram.show', ['prodi_id' => $pr->id]) }}">{{ $pr->name }}</a>
+                @endforeach
+            </div>
+        </div>
+    </li>
+
     <hr class="sidebar-divider d-none d-md-block">
 
-    <!-- Sidebar Toggler (Sidebar) -->
     <div class="text-center d-none d-md-inline">
         <button class="rounded-circle border-0" id="sidebarToggle"></button>
     </div>

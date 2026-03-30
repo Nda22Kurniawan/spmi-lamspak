@@ -1,6 +1,5 @@
 <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
 
-    <!-- Sidebar - Brand -->
     <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{{ route('dashboard') }}">
         <div class="sidebar-brand-icon">
             <i class="fas fa-book-open"></i>
@@ -8,76 +7,86 @@
         <div class="sidebar-brand-text mx-3">FTIK USM</div>
     </a>
 
-    <!-- Divider -->
     <hr class="sidebar-divider my-0">
 
-    <!-- Nav Item - Dashboard -->
     <li class="nav-item">
         <a class="nav-link" href="{{ route('home') }}">
             <i class="fa-solid fa-house"></i>
-            <span>Home Page</span></a>
+            <span>Home Page</span>
+        </a>
         <a class="nav-link" href="{{ route('dashboard') }}">
             <i class="fas fa-fw fa-tachometer-alt"></i>
-            <span>Dashboard</span></a>
-
+            <span>Dashboard</span>
+        </a>
     </li>
 
-    <!-- Divider -->
     <hr class="sidebar-divider">
 
-    <!-- Heading -->
     <div class="sidebar-heading">
-        Master Menu
+        Sistem Penjaminan Mutu
+    </div>
+
+    <li class="nav-item {{ request()->routeIs('assessment.form_asesmen') ? 'active' : '' }}">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseAsesmen" aria-expanded="true"
+            aria-controls="collapseAsesmen">
+            <i class="fas fa-fw fa-edit"></i>
+            <span>Isi Asesmen Mutu</span>
+        </a>
+        <div id="collapseAsesmen" class="collapse" aria-labelledby="headingAsesmen" data-parent="#accordionSidebar">
+            <div class="bg-white py-2 collapse-inner rounded">
+                <h6 class="collapse-header">Pilih Program Studi:</h6>
+                @foreach ($data['p'] as $pr)
+                    <a class="collapse-item" href="{{ route('assessment.form_asesmen', ['prodi_id' => $pr->id]) }}">{{ $pr->name }}</a>
+                @endforeach
+            </div>
+        </div>
+    </li>
+
+    <li class="nav-item {{ request()->routeIs('raw_data.index') ? 'active' : '' }}">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseDkps" aria-expanded="true"
+            aria-controls="collapseDkps">
+            <i class="fas fa-fw fa-calculator"></i>
+            <span>Data Statistik (DKPS)</span>
+        </a>
+        <div id="collapseDkps" class="collapse" aria-labelledby="headingDkps" data-parent="#accordionSidebar">
+            <div class="bg-white py-2 collapse-inner rounded">
+                <h6 class="collapse-header">Pilih Program Studi:</h6>
+                @foreach ($data['p'] as $pr)
+                    <a class="collapse-item" href="{{ route('raw_data.index', ['prodi_id' => $pr->id]) }}">{{ $pr->name }}</a>
+                @endforeach
+            </div>
+        </div>
+    </li>
+
+    <li class="nav-item {{ request()->routeIs('diagram.show') ? 'active' : '' }}">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseGrafik" aria-expanded="true"
+            aria-controls="collapseGrafik">
+            <i class="fas fa-fw fa-chart-pie"></i>
+            <span>Grafik & Laporan</span>
+        </a>
+        <div id="collapseGrafik" class="collapse" aria-labelledby="headingGrafik" data-parent="#accordionSidebar">
+            <div class="bg-white py-2 collapse-inner rounded">
+                <h6 class="collapse-header">Pilih Program Studi:</h6>
+                @foreach ($data['p'] as $pr)
+                    <a class="collapse-item" href="{{ route('diagram.show', ['prodi_id' => $pr->id]) }}">{{ $pr->name }}</a>
+                @endforeach
+            </div>
+        </div>
+    </li>
+
+    <hr class="sidebar-divider">
+
+    <div class="sidebar-heading">
+        Pengaturan Sistem
     </div>
 
     <li class="nav-item">
-        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#prodi" aria-expanded="true"
-            aria-controls="prodi">
-            <i class="fa-solid fa-circle-check"></i>
-            <span>Penilain & Diagram</span></a>
-        </a>
-        <div id="prodi" class="collapse" aria-labelledby="heading1" data-parent="#accordionSidebar">
-            <div class="bg-white py-2 collapse-inner rounded">
-                @foreach ($data['p'] as $pr)
-                    <a class="collapse-item" href="{{ route($pr->kode) }}">{{ $pr->name }}</a>
-                @endforeach
-            </div>
-        </div>
-    </li>
-
-
-    <li class="nav-item">
-        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#element" aria-expanded="true"
-            aria-controls="element">
-            <i class="fa-brands fa-elementor"></i>
-            <span>Element & Berkas</span></a>
-        </a>
-        <div id="element" class="collapse" aria-labelledby="heading1" data-parent="#accordionSidebar">
-            <div class="bg-white py-2 collapse-inner rounded">
-                @foreach ($data['p'] as $pr)
-                    <a class="collapse-item" href="{{ route('element-' . $pr->kode) }}">{{ $pr->name }}</a>
-                @endforeach
-            </div>
-        </div>
-    </li>
-
-    {{-- <li class="nav-item">
-        <a class="nav-link" href="{{ route('berkas') }}">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsePengaturan" aria-expanded="true"
+            aria-controls="collapsePengaturan">
             <i class="fas fa-fw fa-cog"></i>
-            <span>Unggah Berkas</span></a>
-    </li> --}}
-    <li class="nav-item">
-        <a class="nav-link" href="{{ route('berkas') }}">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <span>Multi Search</span></a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#pengaturan" aria-expanded="true"
-            aria-controls="pengaturan">
-            <i class="fas fa-fw fa-cog"></i>
-            <span>Pengaturan</span>
+            <span>Pengaturan Data</span>
         </a>
-        <div id="pengaturan" class="collapse" aria-labelledby="heading2" data-parent="#accordionSidebar">
+        <div id="collapsePengaturan" class="collapse" aria-labelledby="headingPengaturan" data-parent="#accordionSidebar">
             <div class="bg-white py-2 collapse-inner rounded">
                 <a class="collapse-item" href="{{ route('jenjang') }}">Jenjang Pendidikan</a>
                 <a class="collapse-item" href="{{ route('prodi') }}">Program Studi</a>
@@ -85,10 +94,8 @@
         </div>
     </li>
 
-    <!-- Divider -->
     <hr class="sidebar-divider d-none d-md-block">
 
-    <!-- Sidebar Toggler (Sidebar) -->
     <div class="text-center d-none d-md-inline">
         <button class="rounded-circle border-0" id="sidebarToggle"></button>
     </div>
