@@ -26,6 +26,8 @@ class DiagramController extends Controller
         $model = $prodi->accreditationModel;
 
         $clusters = $model->clusters()->with('indicators')->orderBy('order_index', 'asc')->get();
+        
+        $model->setRelation('clusters', $clusters);
 
         $labels = [];
         $scores = [];         
@@ -47,6 +49,7 @@ class DiagramController extends Controller
 
                 $avg = $sumScore / $totalIndicators;
                 $scores[] = round($avg, 2);
+                
                 $sumWeighted = AssessmentScore::where('prodi_id', $prodi->id)
                     ->whereIn('indicator_id', $indicatorIds)
                     ->sum('weighted_score');
@@ -58,7 +61,11 @@ class DiagramController extends Controller
             }
         }
 
-        return view('diagram.show', compact('prodi', 'model', 'labels', 'scores', 'clusterCounts', 'weightedScores'));
+        $detailScores = AssessmentScore::where('prodi_id', $prodi->id)
+            ->get()
+            ->keyBy('indicator_id');
+
+        return view('diagram.show', compact('prodi', 'model', 'labels', 'scores', 'clusterCounts', 'weightedScores', 'detailScores'));
     }
 
     public function pencapaian()
