@@ -136,6 +136,12 @@
             .text-white {
                 color: #000 !important;
             }
+
+            .text-hover-dark:hover {
+                color: #2e59d9;
+                /* Warna biru sedikit gelap */
+                text-decoration: underline;
+            }
         }
     </style>
 
@@ -285,20 +291,30 @@
                                                                         : 0;
                                                                 @endphp
                                                                 <tr>
-                                                                    <td class="text-gray-800">
+                                                                    <td class="text-gray-800" style="cursor: pointer;"
+                                                                        data-toggle="modal"
+                                                                        data-target="#detailIndicatorModal"
+                                                                        onclick="isiModal(this)"
+                                                                        data-code="{{ $indicator->code ?? ($indicator->kode ?? '[Belum dikodekan]') }}"
+                                                                        data-desc="{{ $indicator->description ?? ($indicator->name ?? ($indicator->deskripsi ?? 'Deskripsi tidak tersedia.')) }}"
+                                                                        data-score="{{ number_format($indScore ?? 0, 2) }}">
+
                                                                         @if (!empty($indicator->code))
-                                                                            <strong>{{ $indicator->code }}</strong> -
+                                                                            <strong
+                                                                                class="text-primary">{{ $indicator->code }}</strong>
+                                                                            -
                                                                         @else
                                                                             <span class="text-muted font-italic"
                                                                                 style="font-size: 0.85em;">[Belum
                                                                                 dikodekan]</span> -
                                                                         @endif
 
-                                                                        <span
-                                                                            title="{{ $indicator->description ?? 'Deskripsi tidak tersedia' }}"
-                                                                            style="cursor: help; border-bottom: 1px dotted #a8a8a8;">
-                                                                            {{ Str::limit($indicator->description ?? 'Deskripsi tidak tersedia', 60) }}
+                                                                        <span class="text-hover-dark">
+                                                                            {{ Str::limit($indicator->description ?? ($indicator->name ?? ($indicator->deskripsi ?? 'Deskripsi tidak tersedia.')), 60) }}
                                                                         </span>
+
+                                                                        <i class="fas fa-external-link-alt text-gray-400 ml-1"
+                                                                            style="font-size: 0.75em;"></i>
                                                                     </td>
                                                                     <td class="text-center font-weight-bold text-primary">
                                                                         {{ number_format($indScore, 2) }}
@@ -420,7 +436,45 @@
 
     </div>
 
+    <div class="modal fade" id="detailIndicatorModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-primary text-white">
+                    <h6 class="modal-title font-weight-bold" id="modalLabel">
+                        <i class="fas fa-search-plus mr-2"></i> Detail Butir Asesmen
+                    </h6>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group mb-3">
+                        <label class="text-xs font-weight-bold text-primary text-uppercase mb-1">Kode Indikator</label>
+                        <div id="modal-code" class="p-2 bg-gray-100 border rounded text-gray-900 font-weight-bold"></div>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label class="text-xs font-weight-bold text-primary text-uppercase mb-1">Deskripsi Lengkap</label>
+                        <div id="modal-desc" class="p-3 bg-gray-100 border rounded text-gray-800"
+                            style="min-height: 100px; text-align: justify; line-height: 1.6;"></div>
+                    </div>
+                    <div class="form-group mb-0">
+                        <label class="text-xs font-weight-bold text-success text-uppercase mb-1">Skor Diperoleh</label>
+                        <div>
+                            <span id="modal-score" class="badge badge-success px-3 py-2"
+                                style="font-size: 1.1em;"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <script>
         var ctx = document.getElementById("myRadarChart").getContext('2d');
 
@@ -493,5 +547,30 @@
                 }
             }
         });
+
+        function isiModal(button) {
+            var code = button.getAttribute('data-code');
+            var desc = button.getAttribute('data-desc');
+            var score = button.getAttribute('data-score');
+
+            document.getElementById('modal-code').innerText = code;
+            document.getElementById('modal-desc').innerText = desc;
+
+            var scoreBadge = document.getElementById('modal-score');
+            scoreBadge.innerText = score;
+
+            scoreBadge.className = 'badge px-3 py-2';
+
+            var numScore = parseFloat(score);
+            if (numScore >= 3.5) {
+                scoreBadge.classList.add('badge-success');
+            } else if (numScore >= 3.0) {
+                scoreBadge.classList.add('badge-primary');
+            } else if (numScore >= 2.0) {
+                scoreBadge.classList.add('badge-warning');
+            } else {
+                scoreBadge.classList.add('badge-danger');
+            }
+        }
     </script>
 @endsection
